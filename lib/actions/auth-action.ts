@@ -34,22 +34,25 @@ export async function loginAction(
       password: data.password,
     });
 
-    if (!response.success || !response.data) {
+    if (!response.success || !response.data?.user) {
       return { success: false, error: response.message || 'Login failed.' };
     }
 
-    const role = response.data.role as UserRole;
+    const role = response.data.user.role as UserRole;
     const defaultPath = getDashboardPathForRole(role);
     const targetPath =
       redirectTo && isSafeRedirect(redirectTo, role) ? redirectTo : defaultPath;
 
-    redirect(targetPath);
+    // Return redirect path — client navigates after cookies are set on this response.
+    return {
+      success: true,
+      message: response.message || 'Login successful',
+      redirectTo: targetPath,
+    };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Login failed.';
     return { success: false, error: message };
   }
-
-  return { success: true };
 }
 
 export async function logoutAction(): Promise<void> {

@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { loginAction } from '@/lib/actions/auth-action';
@@ -10,6 +10,7 @@ import PasswordInput from './PasswordInput';
 import { loginSchema, type LoginInput } from './schema';
 
 export default function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || undefined;
   const [serverError, setServerError] = useState<string | null>(null);
@@ -25,12 +26,20 @@ export default function LoginForm() {
 
   async function onSubmit(data: LoginInput) {
     setServerError(null);
+
     const result = await loginAction(
       { email: data.email, password: data.password },
       redirectTo,
     );
+
     if (!result.success) {
       setServerError(result.error || 'Login failed. Please try again.');
+      return;
+    }
+
+    if (result.redirectTo) {
+      router.push(result.redirectTo);
+      router.refresh();
     }
   }
 

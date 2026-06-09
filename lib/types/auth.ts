@@ -21,10 +21,17 @@ export interface IBackendResponse<T> {
   data: T | null;
 }
 
+export interface ILoginResponseData {
+  user: IUser;
+  accessToken: string;
+  refreshToken: string;
+}
+
 export interface IAuthActionResponse {
   success: boolean;
   message?: string;
   error?: string;
+  redirectTo?: string;
 }
 
 export interface ILoginPayload {

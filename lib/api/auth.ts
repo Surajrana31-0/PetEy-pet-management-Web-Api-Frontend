@@ -1,7 +1,8 @@
-import { clearClientCookies, getCookieHeader, setAuthCookiesFromResponse } from '../cookies';
+import { clearClientCookies, getCookieHeader, setAuthCookies } from '../cookies';
 import type {
   IBackendResponse,
   ILoginPayload,
+  ILoginResponseData,
   IRegisterPayload,
   IUser,
 } from '../types/auth';
@@ -14,15 +15,23 @@ export const authApi = {
     return response.data;
   },
 
-  login: async (data: ILoginPayload): Promise<IBackendResponse<IUser>> => {
-    const response = await axiosInstance.post<IBackendResponse<IUser>>(ENDPOINTS.LOGIN, data);
-    await setAuthCookiesFromResponse(response);
+  login: async (data: ILoginPayload): Promise<IBackendResponse<ILoginResponseData>> => {
+    const response = await axiosInstance.post<IBackendResponse<ILoginResponseData>>(
+      ENDPOINTS.LOGIN,
+      data,
+    );
+
+    const loginData = response.data.data;
+    if (loginData?.accessToken && loginData?.refreshToken) {
+      await setAuthCookies(loginData.accessToken, loginData.refreshToken);
+    }
+
     return response.data;
   },
 
   logout: async (): Promise<IBackendResponse<null>> => {
     const cookieHeader = await getCookieHeader();
-    const response = await axiosInstance.post<IBackendResponse<null>>(
+    await axiosInstance.post<IBackendResponse<null>>(
       ENDPOINTS.LOGOUT,
       {},
       {
@@ -30,7 +39,7 @@ export const authApi = {
       },
     );
     await clearClientCookies();
-    return response.data;
+    return { success: true, message: 'Logout successful', data: null };
   },
 
   me: async (): Promise<IBackendResponse<IUser>> => {

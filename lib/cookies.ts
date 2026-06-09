@@ -1,55 +1,26 @@
 import { cookies } from 'next/headers';
-import type { AxiosResponse } from 'axios';
 
-const AUTH_COOKIE_NAMES = ['accessToken', 'refreshToken'] as const;
+const ACCESS_TOKEN_MAX_AGE = 15 * 60; // 15 minutes (seconds)
+const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7 days (seconds)
 
-type AuthCookieName = (typeof AUTH_COOKIE_NAMES)[number];
-
-function isAuthCookieName(name: string): name is AuthCookieName {
-  return AUTH_COOKIE_NAMES.includes(name as AuthCookieName);
+function getCookieOptions(maxAge: number) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge,
+  };
 }
 
-export async function setAuthCookiesFromResponse(response: AxiosResponse): Promise<void> {
-  const setCookieHeader = response.headers['set-cookie'];
-  if (!setCookieHeader) {
-    return;
-  }
-
+/**
+ * Stores JWT tokens as HttpOnly cookies on the Next.js domain (localhost:3000).
+ * Visible in DevTools → Application → Cookies (HttpOnly column = true).
+ */
+export async function setAuthCookies(accessToken: string, refreshToken: string): Promise<void> {
   const cookieStore = await cookies();
-  const cookieStrings = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
-
-  for (const cookieString of cookieStrings) {
-    const [nameValue, ...attributeParts] = cookieString.split(';');
-    const equalsIndex = nameValue.indexOf('=');
-    if (equalsIndex === -1) {
-      continue;
-    }
-
-    const name = nameValue.slice(0, equalsIndex).trim();
-    const value = nameValue.slice(equalsIndex + 1).trim();
-
-    if (!isAuthCookieName(name)) {
-      continue;
-    }
-
-    const options: Parameters<typeof cookieStore.set>[2] = {
-      httpOnly: true,
-      path: '/',
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-    };
-
-    for (const part of attributeParts) {
-      const [rawKey, rawValue] = part.trim().split('=');
-      const key = rawKey.toLowerCase();
-
-      if (key === 'max-age' && rawValue) {
-        options.maxAge = Number.parseInt(rawValue, 10);
-      }
-    }
-
-    cookieStore.set(name, value, options);
-  }
+  cookieStore.set('accessToken', accessToken, getCookieOptions(ACCESS_TOKEN_MAX_AGE));
+  cookieStore.set('refreshToken', refreshToken, getCookieOptions(REFRESH_TOKEN_MAX_AGE));
 }
 
 export async function getCookieHeader(): Promise<string> {
