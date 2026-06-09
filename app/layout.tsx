@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import type { Metadata } from 'next';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: "Petey — Find Your Perfect Companion",
-  description: "Connect with loving pets looking for their forever homes.",
+  title: 'Petey — Find Your Perfect Companion',
+  description: 'Connect with loving pets looking for their forever homes.',
 };
 
 export default function RootLayout({
@@ -15,11 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <Header />
-        <main>{children}</main>
-        <Footer />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
