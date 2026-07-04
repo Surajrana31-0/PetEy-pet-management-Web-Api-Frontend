@@ -1,52 +1,85 @@
-import { clearClientCookies, getCookieHeader, setAuthCookies } from '../cookies';
-import type {
-  IBackendResponse,
-  ILoginPayload,
-  ILoginResponseData,
-  IRegisterPayload,
-  IUser,
-} from '../types/auth';
-import { axiosInstance } from './axios-instance';
-import { ENDPOINTS } from './endpoints';
+// import axiosInstance from "./axios-instance";
+import { axiosInstance } from "./axios-instance";
+import { ENDPOINTS } from "./endpoints";
 
-export const authApi = {
-  register: async (data: IRegisterPayload): Promise<IBackendResponse<IUser>> => {
-    const response = await axiosInstance.post<IBackendResponse<IUser>>(ENDPOINTS.REGISTER, data);
-    return response.data;
-  },
+export const register = async (data: any) => {
+    try{
+        const response = await axiosInstance.post(ENDPOINTS.AUTH.REGISTER, data);
+        return response.data;
+        // response.data -> response ko body
+    }catch (error: any) {
+        throw new Error(
+            error?.response?.data?.message || 'Registration failed'
+        );
+    }
+}
+export const login = async (data: any)=>{
+    try{
+        const response = await axiosInstance.post(ENDPOINTS.AUTH.LOGIN, data);
+        return response.data;
+        // response.data -> response ko body
+    }catch (error: any) {
+        throw new Error(
+            error?.response?.data?.message || 'Login failed'
+        );
+    }
+}
 
-  login: async (data: ILoginPayload): Promise<IBackendResponse<ILoginResponseData>> => {
-    const response = await axiosInstance.post<IBackendResponse<ILoginResponseData>>(
-      ENDPOINTS.LOGIN,
-      data,
-    );
+export const whoami = async ()=>{
+    try{
+        const response = await axiosInstance.get(ENDPOINTS.AUTH.ME);
+        return response.data;
+        // response.data -> response ko body
+    }catch (error: any) {
+        throw new Error(
+            error?.response?.data?.message || 'Fetch user info failed'
+        );
+    }
+}
 
-    const loginData = response.data.data;
-    if (loginData?.accessToken && loginData?.refreshToken) {
-      await setAuthCookies(loginData.accessToken, loginData.refreshToken);
+export const profileUpdate = async ( data: any) => {
+    try{
+        const response = await axiosInstance.put(
+            ENDPOINTS.AUTH.UPDATE, 
+            data,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data", // for multer
+                }
+            }
+        );
+        return response.data;
+        // response.data -> response ko body
+    }catch (error: any) {
+        throw new Error(
+            error?.response?.data?.message || 'Profile update failed'
+        );
     }
 
-    return response.data;
-  },
+    
+}
 
-  logout: async (): Promise<IBackendResponse<null>> => {
-    const cookieHeader = await getCookieHeader();
-    await axiosInstance.post<IBackendResponse<null>>(
-      ENDPOINTS.LOGOUT,
-      {},
-      {
-        headers: cookieHeader ? { Cookie: cookieHeader } : {},
-      },
-    );
-    await clearClientCookies();
-    return { success: true, message: 'Logout successful', data: null };
-  },
+export const requestPasswordReset = async (email: string) => {
+    try {
+        const response = await axiosInstance.post(
+            ENDPOINTS.AUTH.REQUEST_PASSWORD_RESET,
+            { email }
+        );
+        return response.data;
+    } catch (error: Error | any) {
+        throw new Error(error?.response?.data?.message || 'Request password reset failed');
+    }
+}
 
-  me: async (): Promise<IBackendResponse<IUser>> => {
-    const cookieHeader = await getCookieHeader();
-    const response = await axiosInstance.get<IBackendResponse<IUser>>(ENDPOINTS.ME, {
-      headers: cookieHeader ? { Cookie: cookieHeader } : {},
-    });
-    return response.data;
-  },
-};
+export const resetPassword = async (token: string, newPassword: string) => {
+    try {
+        const response = await axiosInstance.post(
+            ENDPOINTS.AUTH.RESET_PASSWORD(token),
+            { newPassword: newPassword }
+        );
+        return response.data;
+    } catch (error: Error | any) {
+        throw new Error(error?.response?.data?.message || 'Reset password failed');
+    }
+
+}

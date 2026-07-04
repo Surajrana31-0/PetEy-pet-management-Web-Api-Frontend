@@ -3,45 +3,58 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
-import { loginAction } from '@/lib/actions/auth-action';
-import PasswordInput from './PasswordInput';
-import { loginSchema, type LoginInput } from './schema';
+// import { loginAction } from '@/lib/actions/auth-action';
+import PasswordInput from '../../_components/PasswordInput';
+import { loginSchema, type LoginInput } from '../../_components/schema';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { LoginFormData } from './schemas';
+import { loginUser } from '@/lib/actions/auth-action';
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || undefined;
   const [serverError, setServerError] = useState<string | null>(null);
+  const { checkAuth } = useAuth();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState('');
+
+
+
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginInput>({
+  } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   });
 
-  async function onSubmit(data: LoginInput) {
+  const onSubmit = (data: LoginFormData) =>{
+    //isPending is true during transition
+    //and false after it finsh
     setServerError(null);
+    setError("");
+    startTransition(
+      async ()=>{
+        try {
+                    const result = await loginUser(data);
+                    if(result.success){
+                        await checkAuth();
+                        router.push("/dashboard");
+                    }else{
+                        setError(result.message || 'Login failed. Please try again');
+                    }
+                } catch (error: any) {
+                    setError(error?.message || 'Login failed. Please try again');
+                }
+      }
+    )
 
-    const result = await loginAction(
-      { email: data.email, password: data.password },
-      redirectTo,
-    );
-
-    if (!result.success) {
-      setServerError(result.error || 'Login failed. Please try again.');
-      return;
-    }
-
-    if (result.redirectTo) {
-      router.push(result.redirectTo);
-      router.refresh();
-    }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>

@@ -1,38 +1,24 @@
-import { cookies } from 'next/headers';
-
-const ACCESS_TOKEN_MAX_AGE = 15 * 60; // 15 minutes (seconds)
-const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7 days (seconds)
-
-function getCookieOptions(maxAge: number) {
-  return {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax' as const,
-    path: '/',
-    maxAge,
-  };
+"use server";
+import { cookies } from "next/headers";
+export const setTokenCookie = async (token: string) => {
+    const cookieStore = await cookies();
+    cookieStore.set("auth_token", token);
 }
-
-/**
- * Stores JWT tokens as HttpOnly cookies on the Next.js domain (localhost:3000).
- * Visible in DevTools → Application → Cookies (HttpOnly column = true).
- */
-export async function setAuthCookies(accessToken: string, refreshToken: string): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.set('accessToken', accessToken, getCookieOptions(ACCESS_TOKEN_MAX_AGE));
-  cookieStore.set('refreshToken', refreshToken, getCookieOptions(REFRESH_TOKEN_MAX_AGE));
+export const getTokenCookie = async () => {
+    const cookieStore = await cookies();
+    return cookieStore.get("auth_token")?.value || null;
 }
-
-export async function getCookieHeader(): Promise<string> {
-  const cookieStore = await cookies();
-  return cookieStore
-    .getAll()
-    .map((cookie) => `${cookie.name}=${cookie.value}`)
-    .join('; ');
+export const setUserInfoCookie = async (userInfo: any) => {
+    const cookieStore = await cookies();
+    cookieStore.set("user_data", JSON.stringify(userInfo)); // convert obj to string
 }
-
-export async function clearClientCookies(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete('accessToken');
-  cookieStore.delete('refreshToken');
+export const getUserInfoCookie = async () => {
+    const cookieStore = await cookies();
+    const userInfoStr = cookieStore.get("user_data")?.value || null;
+    return userInfoStr ? JSON.parse(userInfoStr) : null; // convert string back to obj
+}
+export const clearAuthCookies = async () => {
+    const cookieStore = await cookies();
+    cookieStore.delete("auth_token");
+    cookieStore.delete("user_data");
 }
