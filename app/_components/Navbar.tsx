@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { logoutAction } from '@/lib/actions/auth-action';
+// import { logoutAction } from '@/lib/actions/auth-action';
 import { getDashboardPathForRole } from '@/lib/auth/roles';
 import type { IUser } from '@/lib/types/auth';
 import { UserRole } from '@/lib/types/auth';
+import { logoutUser } from '@/lib/actions/auth-action';
 
 interface NavbarProps {
   user: IUser;
@@ -51,7 +52,7 @@ export default function Navbar({ user, activePath = '' }: NavbarProps) {
           <span className={`dash-nav-role${isAdmin ? ' dash-nav-role--admin' : ''}`}>
             {user.role}
           </span>
-          <form action={logoutAction}>
+          <form action={logoutUser} method="POST" className="ml-4">
             <button type="submit" className="dash-logout-btn">Logout</button>
           </form>
         </div>

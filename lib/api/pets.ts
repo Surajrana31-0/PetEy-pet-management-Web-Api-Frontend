@@ -1,4 +1,5 @@
-import { getCookieHeader } from '../cookies';
+// import { getCookieHeader } from '../cookies';
+import { getTokenCookie } from '../cookies';
 import type { IBackendResponse } from '../types/auth';
 import type { ICreatePetPayload, IPet, IUpdatePetPayload, PetStatus } from '../types/pet';
 import { axiosInstance } from './axios-instance';
@@ -18,25 +19,25 @@ export const petsApi = {
   },
 
   create: async (data: ICreatePetPayload): Promise<IBackendResponse<IPet>> => {
-    const cookieHeader = await getCookieHeader();
+    const token = await getTokenCookie();
     const response = await axiosInstance.post<IBackendResponse<IPet>>(ENDPOINTS.PETS, data, {
-      headers: cookieHeader ? { Cookie: cookieHeader } : {},
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data;
   },
 
   update: async (id: string, data: IUpdatePetPayload): Promise<IBackendResponse<IPet>> => {
-    const cookieHeader = await getCookieHeader();
+    const token = await getTokenCookie();
     const response = await axiosInstance.put<IBackendResponse<IPet>>(`${ENDPOINTS.PETS}/${id}`, data, {
-      headers: cookieHeader ? { Cookie: cookieHeader } : {},
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data;
   },
 
   delete: async (id: string): Promise<IBackendResponse<null>> => {
-    const cookieHeader = await getCookieHeader();
+    const token = await getTokenCookie();
     const response = await axiosInstance.delete<IBackendResponse<null>>(`${ENDPOINTS.PETS}/${id}`, {
-      headers: cookieHeader ? { Cookie: cookieHeader } : {},
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data;
   },

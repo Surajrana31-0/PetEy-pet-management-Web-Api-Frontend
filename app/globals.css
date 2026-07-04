@@ -1414,3 +1414,12 @@ ul { list-style: none; }
   .dash-table-wrap { overflow-x: auto; }
   .dash-table { min-width: 520px; }
 }
+
+
+/* Hide browser's native password reveal button */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-contacts-auto-fill-button {
+  display: none !important;
+}
