@@ -7,20 +7,20 @@ import { ENDPOINTS } from './endpoints';
 
 export const petsApi = {
   getAll: async (status?: PetStatus): Promise<IBackendResponse<IPet[]>> => {
-    const response = await axiosInstance.get<IBackendResponse<IPet[]>>(ENDPOINTS.PETS, {
+    const response = await axiosInstance.get<IBackendResponse<IPet[]>>(ENDPOINTS.PETS.GET, {
       params: status ? { status } : undefined,
     });
     return response.data;
   },
 
   getById: async (id: string): Promise<IBackendResponse<IPet>> => {
-    const response = await axiosInstance.get<IBackendResponse<IPet>>(`${ENDPOINTS.PETS}/${id}`);
+    const response = await axiosInstance.get<IBackendResponse<IPet>>(`${ENDPOINTS.PETS.GET_ONE(id)}`);
     return response.data;
   },
 
   create: async (data: ICreatePetPayload): Promise<IBackendResponse<IPet>> => {
     const token = await getTokenCookie();
-    const response = await axiosInstance.post<IBackendResponse<IPet>>(ENDPOINTS.PETS, data, {
+    const response = await axiosInstance.post<IBackendResponse<IPet>>(ENDPOINTS.ADMIN.PETS.CREATE, data, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data;
@@ -28,7 +28,7 @@ export const petsApi = {
 
   update: async (id: string, data: IUpdatePetPayload): Promise<IBackendResponse<IPet>> => {
     const token = await getTokenCookie();
-    const response = await axiosInstance.put<IBackendResponse<IPet>>(`${ENDPOINTS.PETS}/${id}`, data, {
+    const response = await axiosInstance.put<IBackendResponse<IPet>>(`${ENDPOINTS.ADMIN.PETS.UPDATE(id)}`, data, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data;
@@ -36,7 +36,7 @@ export const petsApi = {
 
   delete: async (id: string): Promise<IBackendResponse<null>> => {
     const token = await getTokenCookie();
-    const response = await axiosInstance.delete<IBackendResponse<null>>(`${ENDPOINTS.PETS}/${id}`, {
+    const response = await axiosInstance.delete<IBackendResponse<null>>(`${ENDPOINTS.ADMIN.PETS.DELETE(id)}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data;

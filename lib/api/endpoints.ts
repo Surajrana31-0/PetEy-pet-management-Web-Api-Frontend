@@ -8,6 +8,12 @@ export const ENDPOINTS = {
     REQUEST_PASSWORD_RESET: '/api/v1/auth/request-password-reset',
     RESET_PASSWORD: (token: string) => `/api/v1/auth/reset-password/${token}`,
   },
+  PETS:{
+    GET: '/api/v1/pets',
+    GET_ONE: (id: string) => `/api/v1/pets/${id}`,
+    UPDATE: (id: string) => `/api/v1/pets/${id}`,
+    DELETE: (id: string) => `/api/v1/pets/${id}`,
+  },
   ADMIN: {
     BLOGS: {
       GET: "/api/v1/admin/blogs",
@@ -24,11 +30,11 @@ export const ENDPOINTS = {
       DELETE: (id: string): string => `/api/v1/admin/users/${id}`,
     },
     PETS: {
-      GET_ALL_PETS: '/api/v1/pets',
-      GET_PET_BY_ID: (id: string) => `/api/v1/pets/${id}`,
-      CREATE_PET: '/api/v1/pets',
-      UPDATE_PET: (id: string) => `/api/v1/pets/${id}`,
-      DELETE_PET: (id: string) => `/api/v1/pets/${id}`,
+      GET: '/api/v1/pets',
+      GET_ONE: (id: string) => `/api/v1/pets/${id}`,
+      CREATE: '/api/v1/pets',
+      UPDATE: (id: string) => `/api/v1/pets/${id}`,
+      DELETE: (id: string) => `/api/v1/pets/${id}`,
     }
   }
 }

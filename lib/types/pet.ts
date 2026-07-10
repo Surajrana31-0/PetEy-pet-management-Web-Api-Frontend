@@ -46,5 +46,5 @@ export interface IUpdatePetPayload {
 export interface IPetActionResponse {
   success: boolean;
   message?: string;
-  error?: string;
+  data?: any;
 }
