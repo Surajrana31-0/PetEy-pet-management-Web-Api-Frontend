@@ -1,36 +1,34 @@
+'use client';
+
+import { ConfirmDialog } from '@/components/ui/dialog';
+
 interface DeleteModalProps {
-  isOpen: null | boolean;
+  isOpen: boolean | null;
   onClose: () => void;
   onConfirm: () => void;
   title: string;
   description: string;
+  isLoading?: boolean;
 }
+
 export default function DeleteModal({
   isOpen,
   onClose,
   onConfirm,
   title,
   description,
+  isLoading,
 }: DeleteModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-black p-6 shadow-lg w-[300px]">
-        <h2>{title}</h2>
-        <p >{description}</p>
-        <div>
-          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded mr-2 text-black">
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmDialog
+      open={Boolean(isOpen)}
+      onClose={onClose}
+      onConfirm={onConfirm}
+      title={title}
+      description={description}
+      confirmLabel="Delete"
+      variant="destructive"
+      isLoading={isLoading}
+    />
   );
 }

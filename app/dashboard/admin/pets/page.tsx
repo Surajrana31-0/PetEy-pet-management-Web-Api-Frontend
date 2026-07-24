@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { deletePetAction } from '@/lib/actions/pet-actions';
+import { deletePetFormAction } from '@/lib/actions/pet-actions';
 import { requireAdminRole } from '@/lib/auth/guards';
 import { petsApi } from '@/lib/api/pets';
 import type { IPet } from '@/lib/types/pet';
@@ -80,7 +80,7 @@ export default async function AdminPetsPage() {
                       >
                         Edit
                       </Link>
-                      <form action={deletePetAction.bind(null, pet._id)}>
+                      <form action={deletePetFormAction.bind(null, pet._id)}>
                         <button type="submit" className="dash-btn-sm dash-btn-sm--danger">
                           Delete
                         </button>

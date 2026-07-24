@@ -1,27 +1,28 @@
-import Link from 'next/link';
 import { Suspense } from 'react';
 import LoginForm from '@/app/(auth)/_components/LoginForm';
+import { AuthShell, AuthSwitchLink } from '@/components/auth/auth-shell';
+import { Spinner } from '@/components/ui/spinner';
+
+function LoginFormFallback() {
+  return (
+    <div className="flex min-h-[280px] items-center justify-center">
+      <Spinner size="lg" label="Loading sign in form" />
+    </div>
+  );
+}
 
 export default function LoginPage() {
   return (
-    <div className="auth-page-wrapper">
-      <div className="auth-top-icon">🐾</div>
-      <h1 className="auth-heading">Welcome Back!</h1>
-      <p className="auth-subheading">
-        Sign in to your Pet-Ey account to continue your pet adoption journey.
-      </p>
-
-      <div className="auth-card">
-        <Suspense fallback={<p className="text-sm text-slate-500">Loading login form...</p>}>
-          <LoginForm />
-        </Suspense>
-        <p className="auth-switch mt-4 text-center text-sm">
-          Don&apos;t have an account?{' '}
-          <Link href="/register" className="auth-switch-link text-orange-500 font-medium">
-            Sign up for free
-          </Link>
-        </p>
-      </div>
-    </div>
+    <AuthShell
+      title="Welcome back"
+      description="Sign in to your PetEy account to continue your pet adoption journey."
+      footer={
+        <AuthSwitchLink prompt="Don't have an account?" href="/register" linkText="Sign up for free" />
+      }
+    >
+      <Suspense fallback={<LoginFormFallback />}>
+        <LoginForm />
+      </Suspense>
+    </AuthShell>
   );
 }

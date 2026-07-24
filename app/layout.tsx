@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
+import { ToastProvider } from '@/components/providers/toast-provider';
 
 export const metadata: Metadata = {
   title: 'Petey — Find Your Perfect Companion',
@@ -17,6 +18,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           {children}
+          <ToastProvider />
         </AuthProvider>
       </body>
     </html>

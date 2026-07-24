@@ -841,3 +841,511 @@ npm run build
 ---
 
 *Last updated: June 2026 — PetEy Pet Adoption Management System*
+
+
+Project Goal
+
+### You are a Senior Frontend Engineer, UI/UX Designer, and Next.js Architect.
+
+### Your task is to transform the existing PetEy frontend into a modern, scalable, responsive, and production-ready web application that fully integrates with the completed backend API.
+
+### The backend is already implemented using Clean Architecture with 28 REST API endpoints, JWT authentication, AI-powered features, role-based authorization, adoption workflow, and an admin dashboard.
+
+Do not redesign randomly.
+
+Every UI decision must improve usability, accessibility, consistency, responsiveness, and user experience.
+
+The application should feel comparable to modern platforms like Airbnb, Stripe Dashboard, Notion, Linear, or GitHub rather than a basic CRUD application.
+
+Development Rules
+
+Before implementing each phase:
+
+Analyze the current frontend architecture.
+Reuse existing components whenever possible.
+Avoid duplicate code.
+Keep the project modular and scalable.
+Maintain strict TypeScript typing.
+Follow Next.js App Router best practices.
+Use reusable UI components.
+Use Server Actions where appropriate.
+Follow responsive-first design.
+Ensure accessibility (ARIA labels, keyboard navigation, color contrast).
+Never leave TODOs or partially implemented features.
+
+After completing each phase:
+
+Verify there are no TypeScript errors.
+Ensure all pages are responsive.
+Ensure loading, error, and empty states are handled.
+Refactor duplicated logic before moving to the next phase.
+
+Do not proceed to the next phase until the previous phase is fully completed.
+
+Phase 1 — Frontend Foundation (Highest Priority)
+
+Objective:
+Create a solid frontend architecture before adding features.
+
+Tasks:
+
+Audit the current project structure.
+Organize folders for scalability.
+Create reusable layout components.
+Create reusable page containers.
+Create reusable cards.
+Create reusable buttons.
+Create reusable forms.
+Create reusable dialogs.
+Create reusable tables.
+Create reusable badges.
+Create reusable loaders.
+Create reusable skeleton loaders.
+Create reusable empty states.
+Create reusable error components.
+Create reusable pagination.
+Create reusable search component.
+Create reusable filter component.
+Create reusable confirmation modal.
+
+Improve:
+
+Typography hierarchy
+Color palette consistency
+Icon consistency
+Spacing system
+Shadows
+Border radius
+Animation consistency
+
+Ensure:
+
+Mobile first
+Tablet optimized
+Desktop optimized
+
+Deliverable:
+
+A professional design system and reusable component library.
+
+Phase 2 — Authentication Experience
+
+Objective:
+
+Build a polished authentication flow.
+
+Pages:
+
+Login
+Register
+Forgot Password
+Reset Password
+
+Improve:
+
+Form validation
+Loading buttons
+Password visibility toggle
+Social-quality animations
+Inline validation
+Toast notifications
+Success pages
+Error handling
+
+Authentication should:
+
+Persist sessions
+Handle expired tokens
+Redirect correctly
+Protect routes
+
+Deliverable:
+
+A seamless authentication experience.
+
+Phase 3 — Public User Experience
+
+Objective:
+
+Build a beautiful landing experience.
+
+Pages:
+
+Landing Page
+About
+Browse Pets
+Pet Details
+AI Recommendation Preview
+
+Landing page should include:
+
+Hero section
+Featured pets
+Categories
+AI features
+Statistics
+Testimonials
+Call to Action
+Footer
+
+Pet browsing should include:
+
+Search
+Filters
+Categories
+Sorting
+Pagination
+Grid/List view
+Wishlist
+Quick Preview
+
+Deliverable:
+
+A modern homepage comparable to a startup landing page.
+
+Phase 4 — User Dashboard
+
+Objective:
+
+Create an elegant dashboard.
+
+Dashboard includes:
+
+Overview
+
+My Profile
+
+Favorite Pets
+
+Adoption Applications
+
+AI Recommendations
+
+Chat History
+
+Settings
+
+Features:
+
+Profile editing
+
+Image upload
+
+Password change
+
+Recent activities
+
+Application timeline
+
+Recommendation cards
+
+Empty states
+
+Loading states
+
+Deliverable:
+
+A polished user dashboard.
+
+Phase 5 — Pet Management (Admin)
+
+Objective:
+
+Create a professional admin experience.
+
+Pages:
+
+Dashboard
+
+Pet List
+
+Create Pet
+
+Edit Pet
+
+Pet Details
+
+Features:
+
+Advanced table
+
+Search
+
+Filters
+
+Pagination
+
+Sorting
+
+Bulk actions
+
+Image preview
+
+Status badges
+
+Delete confirmation
+
+Responsive forms
+
+Deliverable:
+
+Enterprise-level pet management UI.
+
+Phase 6 — Adoption Management
+
+Features:
+
+Application List
+
+Application Details
+
+Status Timeline
+
+Approve
+
+Reject
+
+Cancel
+
+Compatibility Score
+
+Applicant Details
+
+Pet Details
+
+Visualize adoption progress.
+
+Deliverable:
+
+A complete adoption workflow.
+
+Phase 7 — AI Features
+
+Objective:
+
+Showcase AI as the core differentiator.
+
+Build:
+
+AI Pet Matcher
+
+Compatibility Analyzer
+
+Description Generator
+
+Recommendation Page
+
+Streaming AI Chat
+
+Conversation History
+
+Suggested Questions
+
+Typing Indicator
+
+Markdown rendering
+
+Auto-scroll
+
+Chat sessions
+
+Modern chat interface
+
+Deliverable:
+
+An AI experience comparable to ChatGPT.
+
+Phase 8 — Admin Dashboard
+
+Create analytics dashboards.
+
+Widgets:
+
+Total Pets
+
+Available Pets
+
+Pending Adoptions
+
+Completed Adoptions
+
+Users
+
+Growth
+
+Charts
+
+Recent Activities
+
+Latest Applications
+
+Quick Actions
+
+Recent AI Usage
+
+Deliverable:
+
+A modern analytics dashboard.
+
+Phase 9 — UI Polish & Design System
+
+Refine the entire application.
+
+Improve:
+
+Micro interactions
+
+Hover animations
+
+Transitions
+
+Page transitions
+
+Scroll animations
+
+Image loading
+
+Cards
+
+Modals
+
+Forms
+
+Navigation
+
+Breadcrumbs
+
+Dark mode
+
+Theme switching
+
+Glassmorphism where appropriate
+
+Subtle gradients
+
+Modern shadows
+
+Skeleton loading
+
+Meaningful empty states
+
+Professional illustrations
+
+Deliverable:
+
+A premium, production-quality UI.
+
+Phase 10 — Performance Optimization
+
+Optimize:
+
+Image loading
+
+Lazy loading
+
+Dynamic imports
+
+Code splitting
+
+Memoization
+
+Server Components
+
+Server Actions
+
+Caching
+
+Revalidation
+
+Bundle size
+
+Prefetching
+
+Deliverable:
+
+Fast and optimized frontend.
+
+Phase 11 — Accessibility
+
+Ensure:
+
+Keyboard navigation
+
+Focus states
+
+ARIA attributes
+
+Screen reader compatibility
+
+Contrast compliance
+
+Responsive typography
+
+Semantic HTML
+
+Deliverable:
+
+WCAG-compliant application.
+
+Phase 12 — Final Quality Assurance
+
+Perform a complete audit.
+
+Verify:
+
+No TypeScript errors
+No ESLint warnings
+No console errors
+No unused code
+No duplicated components
+Responsive on all screen sizes
+Consistent spacing
+Consistent typography
+Smooth animations
+All backend endpoints integrated
+Loading states everywhere
+Error handling everywhere
+Empty states everywhere
+
+Refactor where needed.
+
+Deliverable:
+
+A production-ready frontend.
+
+Design Inspiration
+
+The UI should take inspiration from:
+
+Airbnb
+Stripe Dashboard
+GitHub
+Linear
+Vercel Dashboard
+Notion
+Radix UI
+shadcn/ui
+
+Avoid:
+
+Bootstrap-style layouts
+Outdated admin templates
+Inconsistent spacing
+Oversized buttons
+Random colors
+Cluttered pages
+
+Aim for a clean, premium, minimalist interface with excellent usability.
+
+Definition of Done
+
+The project is complete only when:
+
+Every backend endpoint is fully integrated.
+Every page is responsive.
+Every page has loading, error, and empty states.
+Components are reusable and type-safe.
+The UI is visually polished and consistent.
+Accessibility and performance best practices are followed.
+There are no TypeScript or linting errors.
+The application feels like a real production product rather than a classroom CRUD app.

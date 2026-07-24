@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { petsApi } from '../api/pets';
 import { ICreatePetPayload, IUpdatePetPayload, IPetActionResponse } from '@/lib/types/pet';
 
@@ -91,4 +90,9 @@ export async function deletePetAction(
       message: error?.message || 'Pet deletion failed',
     };
   }
+}
+
+export async function deletePetFormAction(id: string, formData: FormData): Promise<void> {
+  void formData;
+  await deletePetAction(id);
 }

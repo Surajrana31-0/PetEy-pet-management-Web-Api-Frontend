@@ -8,7 +8,7 @@ import {
 } from './lib/auth/roles';
 import { UserRole } from './lib/types/auth';
 
-const AUTH_ROUTES = ['/login', '/register'];
+const AUTH_ROUTES = ['/login', '/register', '/forget-password', '/reset-password'];
 
 function isAuthRoute(pathname: string): boolean {
   return AUTH_ROUTES.some((route) => pathname.startsWith(route));
@@ -20,9 +20,9 @@ function isDashboardRoute(pathname: string): boolean {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const accessToken = request.cookies.get('accessToken')?.value;
-  const isAuthenticated = Boolean(accessToken);
-  const role = accessToken ? decodeAccessTokenRole(accessToken) : null;
+  const authToken = request.cookies.get('auth_token')?.value;
+  const isAuthenticated = Boolean(authToken);
+  const role = authToken ? decodeAccessTokenRole(authToken) : null;
 
   if (isDashboardRoute(pathname) && !isAuthenticated) {
     const loginUrl = new URL('/login', request.url);
@@ -52,5 +52,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/login', '/register', '/dashboard/:path*'],
+  matcher: ['/login', '/register', '/forget-password', '/reset-password', '/dashboard/:path*'],
 };

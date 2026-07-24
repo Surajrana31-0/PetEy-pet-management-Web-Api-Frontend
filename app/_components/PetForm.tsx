@@ -54,7 +54,7 @@ export default function PetForm({ mode, pet }: PetFormProps) {
         : await updatePetAction(pet!._id, payload);
 
     if (!result.success) {
-      setServerError(result.error || 'Operation failed.');
+      setServerError(result.message || 'Operation failed.');
       return;
     }
 
