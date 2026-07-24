@@ -29,7 +29,7 @@ export const ENDPOINTS = {
   },
   AI: {
     MATCH: '/api/v1/ai/match',
-    ANALYZE: '/api/v1/ai/analyze-compatibility',
+    ANALYZE_COMPATIBILITY: '/api/v1/ai/analyze-compatibility',
     RECOMMENDATIONS: `/api/v1/ai/recommendations`,
     CHAT: '/api/v1/ai/chat',
     CHAT_HISTORY: '/api/v1/ai/chat-history',
