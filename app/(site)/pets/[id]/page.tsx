@@ -16,7 +16,7 @@ import { PetWishlistButton } from '@/components/pets/pet-wishlist-button';
 import { petsApi } from '@/lib/api/pets';
 import { PET_SPECIES_LABELS } from '@/lib/constants/pets';
 import { getPetImage } from '@/lib/utils/pet-images';
-import { PetStatus } from '@/lib/types/pet';
+import { PetStatus, type IPet } from '@/lib/types/pet';
 
 function statusVariant(status: PetStatus) {
   if (status === PetStatus.AVAILABLE) return 'success' as const;
@@ -27,7 +27,7 @@ function statusVariant(status: PetStatus) {
 export default async function PetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  let pet = null;
+  let pet: IPet | null = null;
   try {
     const response = await petsApi.getById(id);
     if (response.success && response.data) {

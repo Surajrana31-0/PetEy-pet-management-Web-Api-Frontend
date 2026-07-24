@@ -73,3 +73,12 @@ export const generatePetDescription = async (data: {
     throw new Error(error?.response?.data?.message || 'Description generation failed');
   }
 };
+
+export const aiApi = {
+  match: matchPets,
+  recommendations: getRecommendations,
+  analyzeCompatibility,
+  chat: sendChat,
+  chatHistory: getChatHistory,
+  generateDescription: generatePetDescription,
+};

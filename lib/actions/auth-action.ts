@@ -8,9 +8,12 @@ import {
   resetPassword,
   whoami,
   profileUpdate,
+  updatePassword,
 } from '@/lib/api/auth';
 import {
+  type ChangePasswordFormData,
   type LoginFormData,
+  type ProfileFormData,
   type RegisterFormData,
 } from '@/lib/auth/schemas';
 import { clearAuthCookies, getTokenCookie, setTokenCookie, setUserInfoCookie } from '../cookies';
@@ -137,6 +140,8 @@ export async function handleUpdateProfile(data: FormData): Promise<ActionResult>
         await setUserInfoCookie(result.data);
       }
       revalidatePath('/dashboard');
+      revalidatePath('/dashboard/user');
+      revalidatePath('/dashboard/profile');
       return {
         success: true,
         data: result.data ?? undefined,
@@ -149,6 +154,49 @@ export async function handleUpdateProfile(data: FormData): Promise<ActionResult>
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Profile update failed',
+    };
+  }
+}
+
+export async function updateProfileAction(data: ProfileFormData): Promise<ActionResult> {
+  const formData = new FormData();
+  formData.append('fullName', data.fullName);
+
+  if (data.phoneNumber?.trim()) {
+    formData.append('phoneNumber', data.phoneNumber.trim());
+  }
+  if (data.address?.trim()) {
+    formData.append('address', data.address.trim());
+  }
+  if (data.location?.trim()) {
+    formData.append('location', data.location.trim());
+  }
+
+  return handleUpdateProfile(formData);
+}
+
+export async function handleUpdatePassword(
+  data: ChangePasswordFormData,
+): Promise<ActionResult> {
+  try {
+    const { confirmPassword: _confirm, ...payload } = data;
+    void _confirm;
+
+    const result = await updatePassword(payload);
+
+    if (result.success) {
+      revalidatePath('/dashboard/settings');
+      return {
+        success: true,
+        message: result.message || 'Password updated successfully',
+      };
+    }
+
+    return { success: false, message: result.message || 'Password update failed' };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Password update failed',
     };
   }
 }

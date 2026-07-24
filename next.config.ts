@@ -1,5 +1,8 @@
 import type { NextConfig } from 'next';
 
+
+const backendURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088';
+const IsDev = backendURL.startsWith('http://localhost');
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [

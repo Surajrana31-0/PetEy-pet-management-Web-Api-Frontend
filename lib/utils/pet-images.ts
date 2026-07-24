@@ -1,4 +1,4 @@
-import { HOME_IMAGES } from './home-images';
+import { HOME_IMAGES } from '../constants/home-images';
 import { PetSpecies } from '../types/pet';
 import type { IPet } from '../types/pet';
 

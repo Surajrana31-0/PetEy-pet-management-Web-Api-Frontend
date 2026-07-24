@@ -1,5 +1,11 @@
 import axiosInstance from './axios-instance';
 import { ENDPOINTS } from './endpoints';
+import type {
+  ICreatePetPayload,
+  IPetQueryParams,
+  IUpdatePetPayload,
+} from '../types/pet';
+import { PetStatus } from '../types/pet';
 
 export const getAllPets = async (params?: {
   page?: number;
@@ -71,4 +77,48 @@ export const getPetCategories = async () => {
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || 'Failed to fetch pet categories');
   }
-};  
+};
+
+function toRequestParams(arg?: PetStatus | IPetQueryParams) {
+  if (!arg) return undefined;
+
+  if (typeof arg === 'string') {
+    return { status: arg };
+  }
+
+  const { q, ...rest } = arg;
+  return {
+    ...rest,
+    ...(q ? { search: q } : {}),
+  };
+}
+
+export const petsApi = {
+  getAll: (arg?: PetStatus | IPetQueryParams) => getAllPets(toRequestParams(arg)),
+  getById: getPetById,
+  getCategories: getPetCategories,
+  create: async (data: ICreatePetPayload) => {
+    try {
+      const response = await axiosInstance.post(ENDPOINTS.ADMIN.PETS.CREATE, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error?.response?.data?.message || 'Failed to create pet');
+    }
+  },
+  update: async (id: string, data: IUpdatePetPayload) => {
+    try {
+      const response = await axiosInstance.put(ENDPOINTS.PETS.UPDATE(id), data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error?.response?.data?.message || 'Failed to update pet');
+    }
+  },
+  delete: async (id: string) => {
+    try {
+      const response = await axiosInstance.delete(ENDPOINTS.PETS.DELETE(id));
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error?.response?.data?.message || 'Failed to delete pet');
+    }
+  },
+};

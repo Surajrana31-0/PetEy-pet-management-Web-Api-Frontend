@@ -4,7 +4,7 @@ export const ENDPOINTS = {
     LOGIN: '/api/v1/auth/login',
     LOGOUT: '/api/v1/auth/logout',
     PROFILE: '/api/v1/auth/profile',
-    UPDATE: '/api/v1/auth/profile',
+    UPDATE: '/api/v1/auth/update',
     ME: '/api/v1/auth/me',
     REFRESH_TOKEN: '/api/v1/auth/refresh-token',
     VERIFY_EMAIL: `/api/v1/auth/verify-email`,

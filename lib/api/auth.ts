@@ -3,9 +3,7 @@ import { ENDPOINTS } from "./endpoints";
 
 
 export const register = async (data: {
-  firstName: string;
-  lastName: string;
-  username?: string;
+  fullName: string;
   email: string;
   password: string;
 }) => {
