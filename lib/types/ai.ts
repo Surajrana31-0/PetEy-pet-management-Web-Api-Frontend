@@ -10,3 +10,15 @@ export interface IAiMatchPreferences {
 }
 
 export type IAiMatchResult = IAiPetMatch[];
+
+export interface IAiChatMessage {
+  role: 'user' | 'assistant';
+  message: string;
+  timestamp?: string;
+}
+
+export interface IAiCompatibilityResult {
+  score: number;
+  factors: string[];
+  summary: string;
+}
