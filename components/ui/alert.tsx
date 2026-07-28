@@ -1,5 +1,5 @@
 import { AlertCircle, CheckCircle2, Info, AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 
 type AlertVariant = 'default' | 'success' | 'warning' | 'destructive';
 

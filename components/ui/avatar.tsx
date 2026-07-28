@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { User } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string | null;
@@ -37,7 +37,6 @@ export const Avatar: React.FC<AvatarProps> = ({
     return parts[0].slice(0, 2).toUpperCase();
   };
 
-  // Convert relative backend path to absolute if needed
   const imageUrl = src?.startsWith('/') && !src.startsWith('http')
     ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088'}${src}`
     : src;
