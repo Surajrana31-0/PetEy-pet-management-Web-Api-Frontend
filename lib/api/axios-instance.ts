@@ -1,66 +1,120 @@
-import axios from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { ENDPOINTS } from './endpoints';
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8088";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088';
+
+interface RetryableConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
+  timeout: 30_000,
 });
 
-/**
- * Resolve accessToken from server cookies or client document.cookie
- */
+let cachedToken: string | null = null;
+let tokenFetchPromise: Promise<string | null> | null = null;
+
 async function resolveToken(): Promise<string | null> {
-  // Server-side: next/headers cookies()
-  try {
-    const { getTokenCookie } = await import("../cookies");
-    const token = await getTokenCookie();
-    if (token) return token;
-  } catch {
-    // Client-side fallback
-  }
+  if (cachedToken) return cachedToken;
 
-  // Client-side: document.cookie
-  if (typeof document !== "undefined") {
-    const match = document.cookie.match(/(?:^|;\s*)accessToken=([^;]*)/);
-    if (match && match[1]) {
-      return decodeURIComponent(match[1]);
+  if (tokenFetchPromise) return tokenFetchPromise;
+
+  tokenFetchPromise = (async () => {
+    try {
+      const { getTokenCookie } = await import('../cookies');
+      const token = await getTokenCookie();
+      if (token) {
+        cachedToken = token;
+        return token;
+      }
+    } catch {
+      // Client-side fallback below
     }
-  }
 
-  return null;
+    if (typeof document !== 'undefined') {
+      const match = document.cookie.match(/(?:^|;\s*)accessToken=([^;]*)/);
+      if (match && match[1]) {
+        const token = decodeURIComponent(match[1]);
+        cachedToken = token;
+        return token;
+      }
+    }
+
+    return null;
+  })();
+
+  try {
+    return await tokenFetchPromise;
+  } finally {
+    tokenFetchPromise = null;
+  }
 }
 
-// Auto-inject Authorization Bearer and Cookie headers for every request
+export function clearCachedToken(): void {
+  cachedToken = null;
+}
+
 axiosInstance.interceptors.request.use(
   async (config) => {
     const token = await resolveToken();
     if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
-      config.headers["Cookie"] = `accessToken=${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error),
 );
 
-// Global response error handler
-axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      console.warn("Unauthorized API call:", error.config?.url);
+async function attemptTokenRefresh(): Promise<string | null> {
+  try {
+    if (typeof window !== 'undefined') {
+      const match = document.cookie.match(/(?:^|;\s*)refreshToken=([^;]*)/);
+      if (!match) return null;
+
+      const res = await axios.post(
+        `${BASE_URL}${ENDPOINTS.AUTH.REFRESH_TOKEN}`,
+        { refreshToken: decodeURIComponent(match[1]) },
+        { headers: { 'Content-Type': 'application/json' } },
+      );
+
+      if (res.data?.success && res.data?.data?.accessToken) {
+        cachedToken = res.data.data.accessToken;
+        document.cookie = `accessToken=${res.data.data.accessToken}; path=/; max-age=900; SameSite=Lax`;
+        document.cookie = `refreshToken=${res.data.data.refreshToken}; path=/; max-age=604800; SameSite=Lax`;
+        return res.data.data.accessToken;
+      }
     }
-    return Promise.reject(error);
+  } catch {
+    // Refresh failed — user will need to log in again
   }
+  return null;
+}
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetryableConfig | undefined;
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      const newToken = await attemptTokenRefresh();
+      if (newToken) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return axiosInstance(originalRequest);
+      }
+
+      if (typeof window !== 'undefined') {
+        clearCachedToken();
+        window.location.href = '/login';
+      }
+    }
+
+    return Promise.reject(error);
+  },
 );
 
 export default axiosInstance;

@@ -1,5 +1,7 @@
 export type AppointmentSpecies = 'DOG' | 'CAT';
 
+export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+
 export interface IAppointmentPayload {
   veterinarianId: string;
   petName: string;
@@ -18,7 +20,7 @@ export interface IAppointment {
   appointmentDate: string;
   timeSlot: string;
   reason: string;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  status: AppointmentStatus;
   cancellationReason?: string | null;
   createdAt: string;
   updatedAt: string;

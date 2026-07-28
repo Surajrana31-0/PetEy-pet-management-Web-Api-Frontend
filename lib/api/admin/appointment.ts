@@ -1,61 +1,65 @@
-import { isAxiosError } from 'axios';
+import { isAxiosError, type AxiosError } from 'axios';
 import axiosInstance from '../axios-instance';
 import { ENDPOINTS } from '../endpoints';
+import type { IApiResponse } from '../../types/api';
+import type { IAppointment } from '../../types/appointment';
 
-async function handleApiCall<T>(apiCall: () => Promise<{ data: T }>, fallbackMessage: string): Promise<T> {
+async function handleApiCall<T>(
+  apiCall: () => Promise<{ data: T }>,
+  fallbackMessage: string,
+): Promise<T> {
   try {
     const response = await apiCall();
     return response.data;
   } catch (error: unknown) {
     if (isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || fallbackMessage);
+      const axiosErr = error as AxiosError<{ message?: string }>;
+      throw new Error(axiosErr.response?.data?.message || fallbackMessage);
     }
-    if (error instanceof Error) {
-      throw error;
-    }
+    if (error instanceof Error) throw error;
     throw new Error(fallbackMessage);
   }
 }
 
-export const getAllAdminAppointments = async (params?: {
+export async function getAllAdminAppointments(params?: {
   page?: number;
   limit?: number;
   status?: string;
   veterinarianId?: string;
-}) => {
+}): Promise<IApiResponse<IAppointment[]>> {
   return handleApiCall(
     () => axiosInstance.get(ENDPOINTS.ADMIN.APPOINTMENTS.GET, { params }),
-    'Failed to fetch appointments'
+    'Failed to fetch appointments',
   );
-};
+}
 
-export const updateAppointmentStatus = async (
+export async function updateAppointmentStatus(
   id: string,
-  data: { status: string; adminNotes?: string; cancellationReason?: string }
-) => {
+  data: { status: string; adminNotes?: string; cancellationReason?: string },
+): Promise<IApiResponse<IAppointment>> {
   return handleApiCall(
     () => axiosInstance.patch(ENDPOINTS.ADMIN.APPOINTMENTS.UPDATE_STATUS(id), data),
-    'Failed to update appointment status'
+    'Failed to update appointment status',
   );
-};
+}
 
-export const deleteAppointment = async (id: string) => {
+export async function deleteAppointment(id: string): Promise<IApiResponse<null>> {
   return handleApiCall(
     () => axiosInstance.delete(ENDPOINTS.ADMIN.APPOINTMENTS.DELETE(id)),
-    'Failed to delete appointment'
+    'Failed to delete appointment',
   );
-};
+}
 
-export const getRecentAppointments = async (limit = 10) => {
+export async function getRecentAppointments(limit = 10): Promise<IApiResponse<IAppointment[]>> {
   return handleApiCall(
     () => axiosInstance.get(ENDPOINTS.ADMIN.APPOINTMENTS.RECENT, { params: { limit } }),
-    'Failed to fetch recent appointments'
+    'Failed to fetch recent appointments',
   );
-};
+}
 
-export const getAppointmentStatistics = async () => {
+export async function getAppointmentStatistics(): Promise<IApiResponse<Record<string, number>>> {
   return handleApiCall(
     () => axiosInstance.get(ENDPOINTS.ADMIN.APPOINTMENTS.STATS),
-    'Failed to fetch appointment statistics'
+    'Failed to fetch appointment statistics',
   );
-};
+}

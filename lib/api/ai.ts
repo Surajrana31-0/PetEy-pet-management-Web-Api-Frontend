@@ -1,78 +1,73 @@
 import axiosInstance from './axios-instance';
 import { ENDPOINTS } from './endpoints';
+import { throwApiError } from './errors';
+import type { IApiResponse } from '../types/api';
+import type { IAiMatchPreferences, IAiMatchResult } from '../types/ai';
+import type { IAiPetMatch } from '../types/pet';
 
-export const matchPets = async (preferences: {
-  lifestyle?: string;
-  housingType?: string;
-  hasChildren?: boolean;
-  hasOtherPets?: boolean;
-  activityLevel?: string;
-  preferredSize?: string;
-  preferredSpecies?: string;
-}) => {
+export async function matchPets(preferences: IAiMatchPreferences): Promise<IApiResponse<IAiMatchResult>> {
   try {
     const response = await axiosInstance.post(ENDPOINTS.AI.MATCH, preferences);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'AI match failed');
+  } catch (error) {
+    throwApiError(error, 'AI match failed');
   }
-};
+}
 
-export const getRecommendations = async () => {
+export async function getRecommendations(): Promise<IApiResponse<IAiPetMatch[]>> {
   try {
     const response = await axiosInstance.get(ENDPOINTS.AI.RECOMMENDATIONS);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch recommendations');
+  } catch (error) {
+    throwApiError(error, 'Failed to fetch recommendations');
   }
-};
+}
 
-export const analyzeCompatibility = async (data: {
+export async function analyzeCompatibility(data: {
   petId: string;
   lifestyle?: string;
   [key: string]: unknown;
-}) => {
+}): Promise<IApiResponse<Record<string, unknown>>> {
   try {
     const response = await axiosInstance.post(ENDPOINTS.AI.ANALYZE_COMPATIBILITY, data);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Compatibility analysis failed');
+  } catch (error) {
+    throwApiError(error, 'Compatibility analysis failed');
   }
-};
+}
 
-export const sendChat = async (message: string, sessionId?: string) => {
+export async function sendChat(message: string, sessionId?: string): Promise<IApiResponse<{ message: string; sessionId: string }>> {
   try {
     const response = await axiosInstance.post(ENDPOINTS.AI.CHAT, { message, sessionId });
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Chat failed');
+  } catch (error) {
+    throwApiError(error, 'Chat failed');
   }
-};
+}
 
-export const getChatHistory = async () => {
+export async function getChatHistory(): Promise<IApiResponse<unknown[]>> {
   try {
     const response = await axiosInstance.get(ENDPOINTS.AI.CHAT_HISTORY);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch chat history');
+  } catch (error) {
+    throwApiError(error, 'Failed to fetch chat history');
   }
-};
+}
 
-// Admin only
-export const generatePetDescription = async (data: {
+export async function generatePetDescription(data: {
   petId: string;
   name: string;
   species: string;
   breed: string;
   age: string;
-}) => {
+}): Promise<IApiResponse<{ description: string }>> {
   try {
     const response = await axiosInstance.post(ENDPOINTS.AI.GENERATE_DESCRIPTION, data);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Description generation failed');
+  } catch (error) {
+    throwApiError(error, 'Description generation failed');
   }
-};
+}
 
 export const aiApi = {
   match: matchPets,

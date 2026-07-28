@@ -15,6 +15,7 @@ export interface IVeterinarian {
   clinicAddress?: string | null;
   availability?: IAvailability[];
   isActive?: boolean;
+  profileImage?: string | null;
   createdAt: string;
   updatedAt: string;
 }

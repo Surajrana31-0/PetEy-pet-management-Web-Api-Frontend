@@ -2,53 +2,60 @@
 
 import { cookies } from "next/headers";
 
-/**
- * Cookie names must match the backend's `CookieUtil.setAuthCookies`
- * in `src/utils/cookies.ts` which sets `accessToken` and `refreshToken`.
- */
 const ACCESS_TOKEN_COOKIE = "accessToken";
 const REFRESH_TOKEN_COOKIE = "refreshToken";
+const USER_DATA_COOKIE = "user_data";
 
-export async function setTokenCookie(token: string) {
+const COOKIE_BASE = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+};
+
+export async function setTokenCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
-
   cookieStore.set(ACCESS_TOKEN_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
+    ...COOKIE_BASE,
+    maxAge: 15 * 60,
   });
 }
 
-export async function getTokenCookie() {
+export async function getTokenCookie(): Promise<string | null> {
   const cookieStore = await cookies();
-
   return cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
 }
 
-export async function setUserInfoCookie(userInfo: unknown) {
+export async function setRefreshTokenCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
-
-  cookieStore.set("user_data", JSON.stringify(userInfo), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
+  cookieStore.set(REFRESH_TOKEN_COOKIE, token, {
+    ...COOKIE_BASE,
+    maxAge: 7 * 24 * 60 * 60,
   });
 }
 
-export async function getUserInfoCookie() {
+export async function getRefreshTokenCookie(): Promise<string | null> {
   const cookieStore = await cookies();
+  return cookieStore.get(REFRESH_TOKEN_COOKIE)?.value ?? null;
+}
 
-  const value = cookieStore.get("user_data")?.value;
+export async function setUserInfoCookie(userInfo: unknown): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(USER_DATA_COOKIE, JSON.stringify(userInfo), {
+    ...COOKIE_BASE,
+    maxAge: 7 * 24 * 60 * 60,
+  });
+}
 
+export async function getUserInfoCookie(): Promise<unknown> {
+  const cookieStore = await cookies();
+  const value = cookieStore.get(USER_DATA_COOKIE)?.value;
   return value ? JSON.parse(value) : null;
 }
 
-export async function clearAuthCookies() {
+export async function clearAuthCookies(): Promise<void> {
   const cookieStore = await cookies();
-
   cookieStore.delete(ACCESS_TOKEN_COOKIE);
   cookieStore.delete(REFRESH_TOKEN_COOKIE);
-  cookieStore.delete("user_data");
+  cookieStore.delete(USER_DATA_COOKIE);
 }

@@ -1,6 +1,9 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import axiosInstance from '@/lib/api/axios-instance';
+import { ENDPOINTS } from '@/lib/api/endpoints';
+import { clearCachedToken } from '@/lib/api/axios-instance';
 import type { IUser } from '@/lib/types/auth';
 
 interface AuthContextValue {
@@ -23,10 +26,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'include' });
-      if (res.ok) {
-        const json = await res.json();
-        setUser(json.data ?? null);
+      const response = await axiosInstance.get(ENDPOINTS.AUTH.ME);
+      if (response.data?.success) {
+        setUser(response.data.data ?? null);
       } else {
         setUser(null);
       }
@@ -41,7 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, [fetchUser]);
 
-  const clearUser = useCallback(() => setUser(null), []);
+  const clearUser = useCallback(() => {
+    setUser(null);
+    clearCachedToken();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, refetch: fetchUser, clearUser }}>
@@ -50,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextValue {
   return useContext(AuthContext);
 }
 
