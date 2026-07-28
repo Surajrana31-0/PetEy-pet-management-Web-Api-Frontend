@@ -1,361 +1,233 @@
 import Link from 'next/link';
-import AnimateIn from '@/app/_components/AnimateIn';
-import SafeImage from '@/app/_components/SafeImage';
-import { petsApi } from '@/lib/api/pets';
-import { HOME_IMAGES, getPetImage } from '@/lib/constants/home-images';
-import { PetSpecies, PetStatus, type IPet } from '@/lib/types/pet';
-import { getCurrentUser } from '@/lib/auth/session';
+import { PawPrint, Search, Heart, Sparkles, ArrowRight, Star, Shield, Clock, Users, Dog, Cat, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
-type FeaturedPet = {
-  _id: string;
-  name: string;
-  age: string;
-  breed: string;
-  species: PetSpecies;
-  description: string;
-  status: PetStatus;
-  image: string;
-};
-
-const stats = [
-  { value: '500+', label: 'Happy Adoptions', icon: '🏠' },
-  { value: '120+', label: 'Active Volunteers', icon: '🤝' },
-  { value: '50+', label: 'Partner Shelters', icon: '🏥' },
-  { value: '8+', label: 'Years of Care', icon: '⭐' },
+const STATS = [
+  { value: '500+', label: 'Pets Adopted', icon: PawPrint },
+  { value: '1.2k', label: 'Happy Families', icon: Users },
+  { value: '98%', label: 'AI Match rate', icon: Sparkles },
+  { value: '24/7', label: 'Support', icon: Shield },
 ];
 
-const steps = [
+const CATEGORIES = [
+  { label: 'Dogs', icon: Dog, href: '/pets?species=DOG', count: '200+ pets' },
+  { label: 'Cats', icon: Cat, href: '/pets?species=CAT', count: '150+ pets' },
+];
+
+const AI_FEATURES = [
   {
-    number: '1',
-    title: 'Browse Pets',
-    desc: 'Explore our database of adorable pets waiting for their forever homes.',
-    icon: '🔍',
+    icon: Sparkles,
+    title: 'AI Pet Matcher',
+    description: 'Our AI analyzes your lifestyle and preferences to recommend the perfect pet for you.',
   },
   {
-    number: '2',
-    title: 'Meet & Greet',
-    desc: 'Schedule a visit to meet your potential new family member in person.',
-    icon: '💛',
+    icon: Heart,
+    title: 'Compatibility Score',
+    description: 'Get a personalized compatibility score for every pet based on your profile.',
   },
   {
-    number: '3',
-    title: 'Adoption Process',
-    desc: 'Complete our simple, caring adoption process with full support.',
-    icon: '📋',
-  },
-  {
-    number: '4',
-    title: 'Welcome Home',
-    desc: 'Bring your companion home and enjoy lifelong support from PetEy.',
-    icon: '🏡',
+    icon: Search,
+    title: 'Smart Search',
+    description: 'Search and filter by species, breed, age, and status to find your ideal companion.',
   },
 ];
 
-const testimonials = [
+const TESTIMONIALS = [
   {
-    quote:
-      'Adopting through PetEy was the best decision we ever made. The team made everything smooth and supportive.',
-    name: 'Bhim Bahadur Rana',
+    name: 'Sarah Johnson',
     role: 'Adopted a Golden Retriever',
-    image: HOME_IMAGES.testimonials[0],
+    quote: 'PetEy\'s AI matcher found the perfect dog for my family. The whole process was seamless and heartwarming.',
+    rating: 5,
   },
   {
-    quote:
-      'Our cat has brought so much joy to our family. The matching process was thoughtful and caring.',
-    name: 'Samridhi Shrestha',
-    role: 'Adopted a Persian Cat',
-    image: HOME_IMAGES.testimonials[1],
+    name: 'Michael Chen',
+    role: 'Adopted a Tabby Cat',
+    quote: 'The compatibility score was spot on. Luna and I bonded instantly. Couldn\'t be happier!',
+    rating: 5,
   },
   {
-    quote:
-      'The staff truly cares about matching pets with the right families. Our Buddy is living his best life!',
-    name: 'Sujan Shrestha',
-    role: 'Adopted a German Shepherd',
-    image: HOME_IMAGES.testimonials[2],
+    name: 'Emily Davis',
+    role: 'Adopted a Beagle',
+    quote: 'From browsing to adoption, PetEy made everything so easy. The AI recommendations were incredibly accurate.',
+    rating: 5,
   },
 ];
 
-const fallbackPets: FeaturedPet[] = [
-  {
-    _id: '1',
-    name: 'Luna',
-    age: '2 years',
-    breed: 'Golden Retriever',
-    species: PetSpecies.DOG,
-    description: 'Friendly and energetic, loves playing fetch and swimming.',
-    status: PetStatus.AVAILABLE,
-    image: HOME_IMAGES.featured[0],
-  },
-  {
-    _id: '2',
-    name: 'Milo',
-    age: '1 year',
-    breed: 'Persian Cat',
-    species: PetSpecies.CAT,
-    description: 'Gentle and affectionate, perfect for a calm household.',
-    status: PetStatus.AVAILABLE,
-    image: HOME_IMAGES.featured[1],
-  },
-  {
-    _id: '3',
-    name: 'Rocky',
-    age: '3 years',
-    breed: 'German Shepherd',
-    species: PetSpecies.DOG,
-    description: 'Loyal and protective, great with kids and families.',
-    status: PetStatus.AVAILABLE,
-    image: HOME_IMAGES.featured[2],
-  },
-  {
-    _id: '4',
-    name: 'Cleo',
-    age: '6 months',
-    breed: 'Siamese Cat',
-    species: PetSpecies.CAT,
-    description: 'Playful kitten who loves cuddles and chasing toys.',
-    status: PetStatus.AVAILABLE,
-    image: HOME_IMAGES.featured[3],
-  },
-];
-
-async function getFeaturedPets(): Promise<FeaturedPet[]> {
-  try {
-    const response = await petsApi.getAll(PetStatus.AVAILABLE);
-    if (response.success && response.data && response.data.pets && response.data.pets.length > 0) {
-      return response.data.pets.slice(0, 4).map((pet: IPet, index: number) => ({
-        _id: pet._id,
-        name: pet.name,
-        age: pet.age,
-        breed: pet.breed,
-        species: pet.species,
-        description: pet.description,
-        status: pet.status,
-        image: getPetImage(pet.species, index),
-      }));
-    }
-  } catch {
-    // Fall back to curated static pets when API is unavailable
-  }
-  return fallbackPets;
-}
-
-export default async function HomePage() {
-  const pets = await getFeaturedPets();
-  const user = await getCurrentUser();
-
+export default function LandingPage() {
   return (
-    <>
-      {/* HERO */}
-      <section className="hero-section hero-section--animated">
-        <div className="hero-bg-blob hero-bg-blob--1" aria-hidden />
-        <div className="hero-bg-blob hero-bg-blob--2" aria-hidden />
+    <div className="flex flex-col">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 gradient-soft" />
+        <div className="pointer-events-none absolute -right-32 top-10 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
+        <div className="pointer-events-none absolute -left-32 bottom-0 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
 
-        <div className="container hero-inner">
-          <AnimateIn className="hero-text" immediate>
-            <span className="hero-eyebrow">Pet Adoption Platform</span>
-            <h1 className="hero-heading">
-              Find Your
-              <br />
-              <span className="hero-accent">Perfect Companion</span>
+        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-3xl text-center">
+            <Badge variant="secondary" className="mb-6 animate-fade-in-down">
+              <Sparkles className="mr-1.5 h-3.5 w-3.5 text-primary" />
+              AI-Powered Pet Adoption
+            </Badge>
+            <h1 className="text-4xl font-bold leading-tight tracking-tight text-balance sm:text-5xl lg:text-6xl animate-fade-in-up">
+              Find your perfect{' '}
+              <span className="gradient-warm bg-clip-text text-transparent">pet companion</span>
             </h1>
-            <p className="hero-desc">
-              Connect with loving pets looking for their forever homes. Every adoption
-              creates a beautiful story of love, companionship, and happiness.
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground text-balance animate-fade-in-up">
+              Browse hundreds of loving pets looking for forever homes. Let our AI matcher find the
+              perfect companion based on your lifestyle and personality.
             </p>
-            <div className="hero-cta">
-              <Link href={user ? "/adopt" : "/register"} className="btn-primary hero-btn-pulse">
-                {user ? "Browse Pets" : "Start Adopting"}
-              </Link>
-              {!user && <Link href="/login" className="btn-outline">Sign In →</Link>}
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row animate-fade-in-up">
+              <Button asChild size="lg" className="gradient-warm text-white shadow-glow">
+                <Link href="/pets">
+                  Browse Pets <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/ai-matcher">
+                  <Sparkles className="mr-2 h-4 w-4 text-primary" /> Try AI Matcher
+                </Link>
+              </Button>
             </div>
-          </AnimateIn>
-
-          <AnimateIn direction="scale" delay={150} className="hero-visual" immediate>
-            <div className="hero-image-stack">
-              <div className="hero-image-main float-slow">
-                <SafeImage
-                  src={HOME_IMAGES.hero}
-                  alt="Happy golden retriever ready for adoption"
-                  width={320}
-                  height={320}
-                  priority
-                  sizes="(max-width: 768px) 220px, 320px"
-                  className="hero-img"
-                />
-              </div>
-              <div className="hero-image-accent float-slow-reverse">
-                <SafeImage
-                  src={HOME_IMAGES.heroAccent}
-                  alt="Person hugging their adopted pet"
-                  width={120}
-                  height={120}
-                  sizes="120px"
-                  className="hero-img"
-                />
-              </div>
-              <div className="hero-badge-float">
-                <span>🐾</span>
-                <div>
-                  <strong>500+</strong>
-                  <small>Adoptions</small>
-                </div>
-              </div>
-            </div>
-          </AnimateIn>
-        </div>
-
-        <div className="container">
-          <div className="stats-grid">
-            {stats.map((s, i) => (
-              <AnimateIn key={s.label} delay={i * 80}>
-                <div className="stat-card stat-card--hover">
-                  <div className="stat-icon">{s.icon}</div>
-                  <div className="stat-value">{s.value}</div>
-                  <div className="stat-label">{s.label}</div>
-                </div>
-              </AnimateIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURED PETS */}
-      <section className="section-white">
-        <div className="container">
-          <AnimateIn>
-            <h2 className="section-title">Meet Our Featured Pets</h2>
-            <p className="section-subtitle">
-              These adorable companions are ready to bring joy and love to your family.
-              Each one has been carefully cared for and is waiting for their perfect match.
-            </p>
-          </AnimateIn>
-
-          <div className="pets-grid">
-            {pets.map((pet, i) => (
-              <AnimateIn key={pet._id} delay={i * 100}>
-                <article className="pet-card pet-card--animated">
-                  <div className="pet-image-wrap">
-                    <SafeImage
-                      src={pet.image}
-                      alt={`${pet.name} - ${pet.breed}`}
-                      width={400}
-                      height={300}
-                      sizes="(max-width: 768px) 100vw, 25vw"
-                      className="pet-image"
-                    />
-                    <div className="pet-image-overlay" />
-                    <span className="pet-age-badge">{pet.age}</span>
-                    <span className="pet-species-badge">{pet.species}</span>
-                  </div>
-                  <div className="pet-info">
-                    <span className="pet-name">{pet.name}</span>
-                    <div className="pet-breed">{pet.breed}</div>
-                    <p className="pet-desc">{pet.description}</p>
-                    <Link href={`/pets/${pet._id}`} className="btn-primary pet-meet-btn">
-                      Meet {pet.name}
-                    </Link>
-                  </div>
-                </article>
-              </AnimateIn>
-            ))}
           </div>
 
-          <AnimateIn delay={200}>
-            <div className="view-all-wrap">
-              <Link href="/adopt" className="view-all-link">Browse All Pets →</Link>
-            </div>
-          </AnimateIn>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="section-tinted">
-        <div className="container">
-          <AnimateIn>
-            <h2 className="section-title">How Pet Adoption Works</h2>
-            <p className="section-subtitle">
-              Our simple and caring adoption process ensures the perfect match between pets
-              and families. We&apos;re here to support you every step of the way.
-            </p>
-          </AnimateIn>
-          <div className="steps-grid">
-            {steps.map((step, i) => (
-              <AnimateIn key={step.title} delay={i * 100}>
-                <div className="step-card step-card--animated">
-                  <div className="step-number">{step.number}</div>
-                  <div className="step-icon-box">{step.icon}</div>
-                  <h3 className="step-title">{step.title}</h3>
-                  <p className="step-desc">{step.desc}</p>
-                </div>
-              </AnimateIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section className="section-white">
-        <div className="container">
-          <AnimateIn>
-            <h2 className="section-title">Happy Adoption Stories</h2>
-            <p className="section-subtitle">
-              Real families sharing their experience with PetEy.
-            </p>
-          </AnimateIn>
-          <div className="testimonials-grid">
-            {testimonials.map((t, i) => (
-              <AnimateIn key={t.name} delay={i * 120}>
-                <div className="testimonial-card testimonial-card--animated">
-                  <div className="stars">★★★★★</div>
-                  <p className="testimonial-quote">&ldquo;{t.quote}&rdquo;</p>
-                  <div className="testimonial-author">
-                    <SafeImage
-                      src={t.image}
-                      alt={t.name}
-                      width={48}
-                      height={48}
-                      sizes="48px"
-                      className="testimonial-avatar-img"
-                    />
+          <div className="mt-16 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+            {STATS.map((stat, i) => {
+              const Icon = stat.icon;
+              return (
+                <Card
+                  key={stat.label}
+                  className="border-border/60 bg-card/80 shadow-card animate-fade-in-up"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                >
+                  <CardContent className="flex items-center gap-4 p-5">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                      <Icon className="h-6 w-6 text-primary" />
+                    </span>
                     <div>
-                      <div className="testimonial-name">{t.name}</div>
-                      <div className="testimonial-role">{t.role}</div>
+                      <div className="text-2xl font-bold">{stat.value}</div>
+                      <div className="text-sm text-muted-foreground">{stat.label}</div>
                     </div>
-                  </div>
-                </div>
-              </AnimateIn>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="cta-section cta-section--animated">
-        <SafeImage
-          src={HOME_IMAGES.cta}
-          alt=""
-          fill
-          sizes="100vw"
-          className="cta-bg-image"
-          aria-hidden
-        />
-        <div className="cta-overlay" aria-hidden />
-        <div className="container cta-inner">
-          <AnimateIn direction="scale">
-            <h2 className="cta-heading">Ready to Find Your Perfect Companion?</h2>
-            <p className="cta-desc">
-              Join thousands of happy families who found their perfect pets through PetEy.
-              Start your adoption journey today.
-            </p>
-            <div className="cta-buttons">
-              <Link href={user ? "/adopt" : "/register"} className="cta-btn-white">
-                {user ? "Browse Pets" : "Create Free Account"}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mb-10 text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Browse by Category</h2>
+          <p className="mt-2 text-muted-foreground">Find your new best friend by species</p>
+        </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <Link key={cat.label} href={cat.href}>
+                <Card className="group cursor-pointer overflow-hidden border-border/60 shadow-card transition-all hover:-translate-y-1 hover:shadow-glow">
+                  <CardContent className="flex items-center justify-between p-8">
+                    <div className="flex items-center gap-4">
+                      <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                        <Icon className="h-8 w-8 text-primary group-hover:text-primary-foreground" />
+                      </span>
+                      <div>
+                        <h3 className="text-xl font-bold">{cat.label}</h3>
+                        <p className="text-sm text-muted-foreground">{cat.count}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-6 w-6 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+                  </CardContent>
+                </Card>
               </Link>
-              {!user && <Link href="/login" className="btn-primary">Sign In</Link>}
-            </div>
-          </AnimateIn>
+            );
+          })}
         </div>
       </section>
-    </>
+
+      <section className="bg-card/50 py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-10 text-center">
+            <Badge variant="secondary" className="mb-3">
+              <Sparkles className="mr-1.5 h-3.5 w-3.5 text-primary" /> AI Features
+            </Badge>
+            <h2 className="text-3xl font-bold tracking-tight">Powered by Artificial Intelligence</h2>
+            <p className="mt-2 max-w-2xl mx-auto text-muted-foreground">
+              We use cutting-edge AI to make pet adoption smarter, faster, and more personal.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {AI_FEATURES.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <Card key={feature.title} className="border-border/60 shadow-card transition-all hover:-translate-y-1 hover:shadow-glow">
+                  <CardContent className="p-8">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl gradient-warm text-white shadow-glow">
+                      <Icon className="h-7 w-7" />
+                    </span>
+                    <h3 className="mt-5 text-lg font-semibold">{feature.title}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mb-10 text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Loved by Pet Parents</h2>
+          <p className="mt-2 text-muted-foreground">Real stories from families who found their companions</p>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {TESTIMONIALS.map((t) => (
+            <Card key={t.name} className="border-border/60 shadow-card">
+              <CardContent className="p-8">
+                <div className="flex gap-1">
+                  {Array.from({ length: t.rating }).map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-warning text-warning" />
+                  ))}
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">&ldquo;{t.quote}&rdquo;</p>
+                <div className="mt-6 flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
+                    {t.name.charAt(0)}
+                  </span>
+                  <div>
+                    <div className="text-sm font-semibold">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden rounded-3xl gradient-warm px-8 py-16 text-center text-white shadow-glow sm:px-16">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+          <div className="relative">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
+              Ready to find your new best friend?
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-lg text-white/80 text-balance">
+              Join thousands of happy families who found their perfect companion through PetEy.
+            </p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button asChild size="lg" variant="secondary">
+                <Link href="/register">Get Started Free</Link>
+              </Button>
+              <Button asChild size="lg" className="bg-white/20 text-white hover:bg-white/30">
+                <Link href="/pets">Browse Pets <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

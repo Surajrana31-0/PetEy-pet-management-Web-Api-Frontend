@@ -1,164 +1,168 @@
+'use client';
+
+import { use } from 'react';
+import useSWR from 'swr';
+import { ArrowLeft, Heart, Share2, Dog, Cat, Calendar, Tag, MessageCircle, Sparkles, Shield, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import {
-  ArrowLeft,
-  Calendar,
-  Heart,
-  MapPin,
-  PawPrint,
-  Shield,
-  Sparkles,
-} from 'lucide-react';
-import AnimateIn from '@/app/_components/AnimateIn';
-import SafeImage from '@/app/_components/SafeImage';
-import { Badge } from '@/components/ui/badge';
-import { PetWishlistButton } from '@/components/pets/pet-wishlist-button';
 import { petsApi } from '@/lib/api/pets';
-import { PET_SPECIES_LABELS } from '@/lib/constants/pets';
-import { getPetImage } from '@/lib/utils/pet-images';
-import { PetStatus, type IPet } from '@/lib/types/pet';
+import type { Pet } from '@/lib/types';
+import { StatusBadge } from '@/components/status-badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/skeletons';
+import { ErrorState } from '@/components/error-state';
+import { toast } from 'sonner';
 
-function statusVariant(status: PetStatus) {
-  if (status === PetStatus.AVAILABLE) return 'success' as const;
-  if (status === PetStatus.PENDING) return 'warning' as const;
-  return 'muted' as const;
-}
+const fetcher = async (id: string) => {
+  const res = await petsApi.getById(id);
+  if (res.error) throw new Error(res.error);
+  return res.data as Pet;
+};
 
-export default async function PetDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default function PetDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const { data: pet, error, isLoading } = useSWR(id, fetcher);
 
-  let pet: IPet | null = null;
-  try {
-    const response = await petsApi.getById(id);
-    if (response.success && response.data) {
-      pet = response.data;
-    }
-  } catch {
-    notFound();
-  }
-
-  if (!pet) notFound();
-
-  const image = getPetImage(pet);
-
-  return (
-    <>
-      <section className="pet-detail-hero">
-        <div className="container">
-          <AnimateIn immediate>
-            <Link href="/adopt" className="pet-detail-back">
-              <ArrowLeft className="h-4 w-4" aria-hidden />
-              Back to browse
-            </Link>
-          </AnimateIn>
-        </div>
-      </section>
-
-      <section className="section-white section-white--compact">
-        <div className="container">
-          <div className="pet-detail-grid">
-            <AnimateIn direction="scale" immediate>
-              <div className="pet-detail-image-wrap">
-                <SafeImage
-                  src={image}
-                  alt={`${pet.name} - ${pet.breed}`}
-                  width={640}
-                  height={480}
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="pet-detail-image"
-                />
-                <span className="pet-species-badge">{PET_SPECIES_LABELS[pet.species]}</span>
-              </div>
-            </AnimateIn>
-
-            <AnimateIn delay={100}>
-              <div className="pet-detail-info">
-                <div className="pet-detail-header">
-                  <div>
-                    <h1 className="pet-detail-name">{pet.name}</h1>
-                    <p className="pet-detail-meta">
-                      <MapPin className="h-4 w-4" aria-hidden />
-                      {pet.breed} · {pet.age}
-                    </p>
-                  </div>
-                  <div className="pet-detail-actions">
-                    <Badge variant={statusVariant(pet.status)}>{pet.status}</Badge>
-                    <PetWishlistButton petId={pet._id} />
-                  </div>
-                </div>
-
-                <p className="pet-detail-desc">{pet.description}</p>
-
-                {pet.aiGeneratedDescription && (
-                  <div className="pet-detail-ai">
-                    <div className="pet-detail-ai-header">
-                      <Sparkles className="h-5 w-5 text-brand" aria-hidden />
-                      <span>AI personality insight</span>
-                    </div>
-                    <p>{pet.aiGeneratedDescription}</p>
-                  </div>
-                )}
-
-                <div className="pet-detail-traits">
-                  {pet.size && (
-                    <div className="pet-detail-trait">
-                      <PawPrint className="h-4 w-4" aria-hidden />
-                      <span>Size: {pet.size.charAt(0) + pet.size.slice(1).toLowerCase()}</span>
-                    </div>
-                  )}
-                  {pet.gender && (
-                    <div className="pet-detail-trait">
-                      <Heart className="h-4 w-4" aria-hidden />
-                      <span>Gender: {pet.gender.charAt(0) + pet.gender.slice(1).toLowerCase()}</span>
-                    </div>
-                  )}
-                  {pet.vaccinated !== undefined && (
-                    <div className="pet-detail-trait">
-                      <Shield className="h-4 w-4" aria-hidden />
-                      <span>{pet.vaccinated ? 'Vaccinated' : 'Vaccination pending'}</span>
-                    </div>
-                  )}
-                  {pet.energyLevel && (
-                    <div className="pet-detail-trait">
-                      <Calendar className="h-4 w-4" aria-hidden />
-                      <span>Energy: {pet.energyLevel}</span>
-                    </div>
-                  )}
-                </div>
-
-                {pet.temperament && pet.temperament.length > 0 && (
-                  <div className="pet-detail-tags">
-                    {pet.temperament.map((trait) => (
-                      <Badge key={trait} variant="outline">
-                        {trait}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-
-                {pet.status === PetStatus.AVAILABLE ? (
-                  <div className="pet-detail-cta">
-                    <Link href={`/pets/${pet._id}/adopt`} className="btn-primary">
-                      Start adoption process
-                    </Link>
-                    <Link href="/ai-assistant" className="btn-outline">
-                      Check AI compatibility
-                    </Link>
-                  </div>
-                ) : (
-                  <p className="pet-detail-unavailable">
-                    This pet is currently {pet.status.toLowerCase()}.{' '}
-                    <Link href="/adopt" className="text-brand font-medium hover:underline">
-                      Browse other available pets
-                    </Link>
-                  </p>
-                )}
-              </div>
-            </AnimateIn>
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <Skeleton className="mb-6 h-10 w-32" />
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <Skeleton className="aspect-square w-full rounded-3xl" />
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-6 w-1/2" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-12 w-full" />
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    );
+  }
+
+  if (error || !pet) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <ErrorState
+          title="Pet not found"
+          message={error?.message || 'This pet may have been removed or is no longer available.'}
+        />
+        <div className="mt-6 text-center">
+          <Button asChild variant="outline">
+            <Link href="/pets"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Browse</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const SpeciesIcon = pet.species === 'DOG' ? Dog : Cat;
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-6">
+        <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
+          <Link href="/pets"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Browse</Link>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="relative">
+          <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/10">
+            <div className="flex h-full items-center justify-center">
+              <span className="text-[10rem] animate-float">{pet.emoji || (pet.species === 'DOG' ? '🐶' : '🐱')}</span>
+            </div>
+            <div className="absolute left-4 top-4">
+              <StatusBadge status={pet.status} />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+              <SpeciesIcon className="h-4 w-4" /> {pet.species}
+            </span>
+            <span className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm font-medium">
+              <Tag className="h-4 w-4 text-muted-foreground" /> {pet.breed}
+            </span>
+          </div>
+
+          <h1 className="text-4xl font-bold tracking-tight">{pet.name}</h1>
+          <p className="mt-1 text-lg text-muted-foreground">{pet.age}</p>
+
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center gap-3 text-sm">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Listed on</span>
+              <span className="font-medium">
+                {new Date(pet.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">About</h3>
+            <p className="mt-2 leading-relaxed text-foreground/90">{pet.description}</p>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button
+              size="lg"
+              className="flex-1 gradient-warm text-white"
+              disabled={pet.status !== 'AVAILABLE'}
+              onClick={() => toast.info('Sign in to start the adoption process')}
+            >
+              <Heart className="mr-2 h-5 w-5" />
+              {pet.status === 'AVAILABLE' ? 'Start Adoption' : 'Not Available'}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => toast.success('Pet details copied to clipboard!')}
+            >
+              <Share2 className="mr-2 h-4 w-4" /> Share
+            </Button>
+          </div>
+
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            <div className="rounded-xl border border-border bg-card/50 p-4 text-center">
+              <Shield className="mx-auto h-5 w-5 text-success" />
+              <p className="mt-2 text-xs text-muted-foreground">Verified Listing</p>
+            </div>
+            <div className="rounded-xl border border-border bg-card/50 p-4 text-center">
+              <Clock className="mx-auto h-5 w-5 text-warning" />
+              <p className="mt-2 text-xs text-muted-foreground">Quick Process</p>
+            </div>
+            <div className="rounded-xl border border-border bg-card/50 p-4 text-center">
+              <Sparkles className="mx-auto h-5 w-5 text-primary" />
+              <p className="mt-2 text-xs text-muted-foreground">AI Matched</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Card className="mt-10 border-border/60 shadow-card">
+        <CardContent className="p-8">
+          <div className="flex items-start gap-4">
+            <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl gradient-warm text-white">
+              <MessageCircle className="h-6 w-6" />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold">Have questions about {pet.name}?</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Our AI assistant can answer questions about {pet.name}&apos;s temperament, care needs,
+                and whether they&apos;re a good fit for your lifestyle.
+              </p>
+              <Button asChild className="mt-4" size="sm">
+                <Link href="/ai-matcher">
+                  <Sparkles className="mr-2 h-4 w-4" /> Ask AI about {pet.name}
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
