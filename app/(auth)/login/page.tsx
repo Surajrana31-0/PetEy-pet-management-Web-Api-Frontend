@@ -1,28 +1,33 @@
 import { Suspense } from 'react';
-import LoginForm from '@/app/(auth)/_components/LoginForm';
-import { AuthShell, AuthSwitchLink } from '@/components/auth/auth-shell';
-import { Spinner } from '@/components/ui/spinner';
-
-function LoginFormFallback() {
-  return (
-    <div className="flex min-h-[280px] items-center justify-center">
-      <Spinner size="lg" label="Loading sign in form" />
-    </div>
-  );
-}
+import Link from 'next/link';
+import { LoginForm } from '@/components/auth/login-form';
 
 export default function LoginPage() {
   return (
-    <AuthShell
-      title="Welcome back"
-      description="Sign in to your PetEy account to continue your pet adoption journey."
-      footer={
-        <AuthSwitchLink prompt="Don't have an account?" href="/register" linkText="Sign up for free" />
-      }
-    >
-      <Suspense fallback={<LoginFormFallback />}>
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Sign in to your PetEy account to continue your adoption journey.
+        </p>
+      </div>
+
+      <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
         <LoginForm />
       </Suspense>
-    </AuthShell>
+
+      <div className="mt-6 text-center text-sm text-muted-foreground">
+        Don&apos;t have an account?{' '}
+        <Link href="/register" className="font-medium text-primary hover:underline">
+          Sign up
+        </Link>
+      </div>
+
+      <div className="mt-4 text-center">
+        <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+          Forgot your password?
+        </Link>
+      </div>
+    </div>
   );
 }
