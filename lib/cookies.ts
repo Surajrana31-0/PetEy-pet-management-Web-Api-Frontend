@@ -1,61 +1,48 @@
-"use server";
+import { cookies } from 'next/headers';
 
-import { cookies } from "next/headers";
-
-const ACCESS_TOKEN_COOKIE = "accessToken";
-const REFRESH_TOKEN_COOKIE = "refreshToken";
-const USER_DATA_COOKIE = "user_data";
-
-const COOKIE_BASE = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-};
-
-export async function setTokenCookie(token: string): Promise<void> {
+export async function getAuthCookieHeader(): Promise<string> {
   const cookieStore = await cookies();
-  cookieStore.set(ACCESS_TOKEN_COOKIE, token, {
-    ...COOKIE_BASE,
-    maxAge: 15 * 60,
-  });
+  return cookieStore
+    .getAll()
+    .map((c) => `${c.name}=${c.value}`)
+    .join('; ');
 }
 
-export async function getTokenCookie(): Promise<string | null> {
+export async function setAuthCookiesFromResponse(setCookieHeaders: string[]): Promise<void> {
   const cookieStore = await cookies();
-  return cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
-}
+  for (const header of setCookieHeaders) {
+    const [pair, ...rest] = header.split(';');
+    const eqIdx = pair.indexOf('=');
+    if (eqIdx === -1) continue;
+    const name = pair.slice(0, eqIdx).trim();
+    const value = pair.slice(eqIdx + 1).trim();
+    const attrs = rest.join('; ');
+    const httpOnly = /httponly/i.test(attrs);
+    const secure = /secure/i.test(attrs);
+    const sameSiteMatch = /samesite=([^;]+)/i.exec(attrs);
+    const sameSite = sameSiteMatch?.[1]?.trim().toLowerCase() as
+      | 'strict'
+      | 'lax'
+      | 'none'
+      | undefined;
+    const maxAgeMatch = /max-age=([^;]+)/i.exec(attrs);
+    const maxAge = maxAgeMatch ? Number(maxAgeMatch[1]) : undefined;
+    const pathMatch = /path=([^;]+)/i.exec(attrs);
+    const path = pathMatch?.[1]?.trim() || '/';
 
-export async function setRefreshTokenCookie(token: string): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.set(REFRESH_TOKEN_COOKIE, token, {
-    ...COOKIE_BASE,
-    maxAge: 7 * 24 * 60 * 60,
-  });
-}
-
-export async function getRefreshTokenCookie(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get(REFRESH_TOKEN_COOKIE)?.value ?? null;
-}
-
-export async function setUserInfoCookie(userInfo: unknown): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.set(USER_DATA_COOKIE, JSON.stringify(userInfo), {
-    ...COOKIE_BASE,
-    maxAge: 7 * 24 * 60 * 60,
-  });
-}
-
-export async function getUserInfoCookie(): Promise<unknown> {
-  const cookieStore = await cookies();
-  const value = cookieStore.get(USER_DATA_COOKIE)?.value;
-  return value ? JSON.parse(value) : null;
+    cookieStore.set(name, value, {
+      httpOnly,
+      secure,
+      sameSite: sameSite || 'strict',
+      maxAge,
+      path,
+    });
+  }
 }
 
 export async function clearAuthCookies(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete(ACCESS_TOKEN_COOKIE);
-  cookieStore.delete(REFRESH_TOKEN_COOKIE);
-  cookieStore.delete(USER_DATA_COOKIE);
+  ['accessToken', 'refreshToken'].forEach((name) => {
+    cookieStore.set(name, '', { path: '/', maxAge: 0 });
+  });
 }

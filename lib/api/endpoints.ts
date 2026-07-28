@@ -1,113 +1,15 @@
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8088/api';
+
 export const ENDPOINTS = {
   AUTH: {
-    REGISTER: '/api/v1/auth/register',
-    LOGIN: '/api/v1/auth/login',
-    LOGOUT: '/api/v1/auth/logout',
-    PROFILE: '/api/v1/auth/profile',
-    UPDATE: '/api/v1/auth/update',
-    ME: '/api/v1/auth/me',
-    REFRESH_TOKEN: '/api/v1/auth/refresh-token',
-    VERIFY_EMAIL: `/api/v1/auth/verify-email`,
-    REQUEST_PASSWORD_RESET: '/api/v1/auth/request-password-reset',
-    UPDATE_PASSWORD: '/api/v1/auth/password',
-    FORGOT_PASSWORD: '/api/v1/auth/forgot-password',
-    RESET_PASSWORD: '/api/v1/auth/reset-password',
-    // RESET_PASSWORD: (token: string) => `api/v1/auth/reset-password/${token}`,
+    REGISTER: '/auth/register',
+    LOGIN: '/auth/login',
+    LOGOUT: '/auth/logout',
+    ME: '/auth/me',
   },
   PETS: {
-    GET: '/api/v1/pets',
-    SEARCH: '/api/v1/pets/search',
-    CATEGORIES: '/api/v1/pets/categories',
-    GET_ONE: (id: string) => `/api/v1/pets/${id}`,
-    FAVORITE: (id: string) => `/api/v1/pets/${id}/favorite`,
-    UPDATE: (id: string) => `/api/v1/pets/${id}`,
-    DELETE: (id: string) => `/api/v1/pets/${id}`,
-    BY_STATUS: (status: string) => `/api/v1/pets/status/${status}`,
-    BY_SPECIES: (species: string) => `/api/v1/pets/species/${species}`,
-    BY_BREED: (breed: string) => `/api/v1/pets/breed/${breed}`,
-    BY_AGE: (age: string) => `/api/v1/pets/age/${age}`,
+    BASE: '/pets',
+    BY_ID: (id: string) => `/pets/${id}`,
   },
-  AI: {
-    MATCH: '/api/v1/ai/match',
-    ANALYZE_COMPATIBILITY: '/api/v1/ai/analyze-compatibility',
-    RECOMMENDATIONS: `/api/v1/ai/recommendations`,
-    CHAT: '/api/v1/ai/chat',
-    CHAT_HISTORY: '/api/v1/ai/chat-history',
-    GENERATE_DESCRIPTION: '/api/v1/ai/generate-description',
-  },
-
-  // ── ADOPTIONS ────────────────────────────────────────────────
-  ADOPTIONS: {
-    CREATE: '/api/v1/adoptions',
-    MY: '/api/v1/adoptions/my',
-    STATISTICS: '/api/v1/adoptions/statistics',
-    PENDING: '/api/v1/adoptions/pending',
-    GET_ONE: (id: string) => `/api/v1/adoptions/${id}`,
-    BY_USER: (userId: string) => `/api/v1/adoptions/user/${userId}`,
-    BY_PET: (petId: string) => `/api/v1/adoptions/pet/${petId}`,
-    CANCEL: (id: string) => `/api/v1/adoptions/${id}/cancel`,
-    APPROVE: (id: string) => `/api/v1/adoptions/${id}/approve`,
-    REJECT: (id: string) => `/api/v1/adoptions/${id}/reject`,
-    COMPLETE: (id: string) => `/api/v1/adoptions/${id}/complete`,
-  },
-
-  // VETERINARIANS (public)
-  VETS: {
-    GET: '/api/v1/vet',
-    GET_ONE: (id: string) => `/api/v1/vet/${id}`,
-  },
-  // APPOINTMENTS (user-facing)
-  APPOINTMENTS: {
-    CREATE: '/api/v1/appointments',
-    MY: '/api/v1/appointments/my',
-    GET_ONE: (id: string) => `/api/v1/appointments/${id}`,
-    CANCEL: (id: string) => `/api/v1/appointments/${id}/cancel`,
-  },
-  // ADMIN (admin-facing)
-  ADMIN: {
-    BLOGS: {
-      STATS: '/api/v1/admin/blogs/stats/dashboard',
-      GET: '/api/v1/admin/blogs',
-      GET_ONE: (id: string) => `/api/v1/admin/blogs/${id}`,
-      CREATE: '/api/v1/admin/blogs',
-      UPDATE: (id: string): string => `/api/v1/admin/blogs/${id}`,
-      UPDATE_STATUS: (id: string): string => `/api/v1/admin/blogs/${id}/status`,
-      DELETE: (id: string): string => `/api/v1/admin/blogs/${id}`,
-    },
-    USERS: {
-      STATS: '/api/v1/admin/users/stats',
-      GET: '/api/v1/admin/users',
-      GET_ONE: (id: string) => `/api/v1/admin/users/${id}`,
-      CREATE: '/api/v1/admin/users',
-      UPDATE: (id: string): string => `/api/v1/admin/users/${id}`,
-      DELETE: (id: string): string => `/api/v1/admin/users/${id}`,
-      UPDATE_ROLE: (id: string): string => `/api/v1/admin/users/${id}/role`,
-    },
-    PETS: {
-      STATS: '/api/v1/admin/pets/stats/dashboard',
-      GET: '/api/v1/admin/pets',
-      GET_ONE: (id: string) => `/api/v1/admin/pets/${id}`,
-      CREATE: '/api/v1/admin/pets',
-      UPDATE: (id: string) => `/api/v1/admin/pets/${id}`,
-      UPDATE_STATUS: (id: string) => `/api/v1/admin/pets/${id}/status`,
-      DELETE: (id: string) => `/api/v1/admin/pets/${id}`,
-    },
-    VETS: {
-      STATS:                '/api/v1/admin/vets/statistics',
-      GET:                  '/api/v1/admin/vets',
-      GET_ONE:              (id: string) => `/api/v1/admin/vets/${id}`,
-      CREATE:               '/api/v1/admin/vets',
-      UPDATE:               (id: string) => `/api/v1/admin/vets/${id}`,
-      DELETE:               (id: string) => `/api/v1/admin/vets/${id}`,
-      TOGGLE_ACTIVE:        (id: string) => `/api/v1/admin/vets/${id}/toggle-active`,
-      UPDATE_PROFILE_IMAGE: (id: string) => `/api/v1/admin/vets/${id}/profile-image`,
-    },
-    APPOINTMENTS: {
-      STATS:         '/api/v1/admin/appointments/statistics',
-      RECENT:        '/api/v1/admin/appointments/recent',
-      GET:           '/api/v1/admin/appointments',
-      UPDATE_STATUS: (id: string) => `/api/v1/admin/appointments/${id}/status`,
-      DELETE:        (id: string) => `/api/v1/admin/appointments/${id}`,
-    },
-  },
-};
+} as const;

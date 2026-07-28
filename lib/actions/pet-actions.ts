@@ -1,98 +1,78 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { petsApi } from '../api/pets';
-import { ICreatePetPayload, IUpdatePetPayload, IPetActionResponse } from '@/lib/types/pet';
+import { redirect } from 'next/navigation';
+import { petsApi } from '@/lib/api/pets';
+import type { CreatePetInput, UpdatePetInput, PetStatus, PetSpecies } from '@/lib/types';
 
+export interface PetFormState {
+  error: string | null;
+  success: boolean;
+}
 
-export async function createPetAction(data: FormData) {
-  try {
-    const result = await petsApi.create(data);
+export async function createPetAction(
+  _prev: PetFormState,
+  formData: FormData
+): Promise<PetFormState> {
+  const name = formData.get('name')?.toString().trim();
+  const age = formData.get('age')?.toString().trim();
+  const breed = formData.get('breed')?.toString().trim();
+  const species = formData.get('species')?.toString() as PetSpecies | undefined;
+  const description = formData.get('description')?.toString().trim();
+  const emoji = formData.get('emoji')?.toString().trim() || undefined;
+  const status = (formData.get('status')?.toString() as PetStatus) || 'AVAILABLE';
 
-    if (result.success) {
-      revalidatePath("/dashboard/admin/pets");
-      revalidatePath("/dashboard/user/browse");
-
-      return {
-        success: true,
-        data: result.data,
-        message: result.message || "Pet created successfully",
-      };
-    }
-
-    return {
-      success: false,
-      message: result.message || "Pet creation failed",
-    };
-
-  } catch (error: any) {
-    return {
-      success: false,
-      message: error.message || "Pet creation failed",
-    };
+  if (!name || !age || !breed || !species || !description) {
+    return { error: 'All required fields must be filled.', success: false };
   }
+  if (description.length < 10) {
+    return { error: 'Description must be at least 10 characters.', success: false };
+  }
+
+  const body: CreatePetInput = { name, age, breed, species, description, emoji, status };
+  const res = await petsApi.create(body);
+  if (res.error) return { error: res.error, success: false };
+
+  revalidatePath('/dashboard/admin/pets');
+  redirect('/dashboard/admin/pets');
 }
 
 export async function updatePetAction(
-  id: string,
-  data: FormData
-): Promise<IPetActionResponse> {
-  try {
-    const result = await petsApi.update(id, data);
+  _prev: PetFormState,
+  formData: FormData
+): Promise<PetFormState> {
+  const id = formData.get('id')?.toString();
+  if (!id) return { error: 'Pet ID is missing.', success: false };
 
-    if (result.success) {
-      revalidatePath('/dashboard/admin/pets');
-      revalidatePath(`/dashboard/admin/pets/${id}/edit`);
-      revalidatePath('/dashboard/user/browse');
+  const name = formData.get('name')?.toString().trim();
+  const age = formData.get('age')?.toString().trim();
+  const breed = formData.get('breed')?.toString().trim();
+  const species = formData.get('species')?.toString() as PetSpecies | undefined;
+  const description = formData.get('description')?.toString().trim();
+  const emoji = formData.get('emoji')?.toString().trim() || undefined;
+  const status = (formData.get('status')?.toString() as PetStatus) || undefined;
 
-      return {
-        success: true,
-        data: result.data,
-        message: result.message || 'Pet updated successfully',
-      };
-    }
+  const body: UpdatePetInput = {};
+  if (name) body.name = name;
+  if (age) body.age = age;
+  if (breed) body.breed = breed;
+  if (species) body.species = species;
+  if (description) body.description = description;
+  if (emoji) body.emoji = emoji;
+  if (status) body.status = status;
 
-    return {
-      success: false,
-      message: result.message || 'Pet update failed',
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      message: error?.message || 'Pet update failed',
-    };
-  }
+  const res = await petsApi.update(id, body);
+  if (res.error) return { error: res.error, success: false };
+
+  revalidatePath('/dashboard/admin/pets');
+  revalidatePath(`/pets/${id}`);
+  redirect('/dashboard/admin/pets');
 }
 
-export async function deletePetAction(
-  id: string
-): Promise<IPetActionResponse> {
-  try {
-    const result = await petsApi.delete(id);
-
-    if (result.success) {
-      revalidatePath('/dashboard/admin/pets');
-      revalidatePath('/dashboard/user/browse');
-
-      return {
-        success: true,
-        message: result.message || 'Pet deleted successfully',
-      };
-    }
-
-    return {
-      success: false,
-      message: result.message || 'Pet deletion failed',
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      message: error?.message || 'Pet deletion failed',
-    };
-  }
-}
-
-export async function deletePetFormAction(id: string, formData: FormData): Promise<void> {
-  void formData;
-  await deletePetAction(id);
+export async function deletePetAction(formData: FormData): Promise<void> {
+  const id = formData.get('id')?.toString();
+  if (!id) return;
+  await petsApi.delete(id);
+  revalidatePath('/dashboard/admin/pets');
+  redirect('/dashboard/admin/pets');
 }

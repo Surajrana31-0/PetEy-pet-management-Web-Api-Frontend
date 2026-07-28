@@ -1,23 +1,17 @@
-import { getUserInfoCookie, getTokenCookie } from "../cookies";
-import { decodeAccessTokenRole } from "./roles";
-import type { IUser } from "../types/auth";
+import { cookies } from 'next/headers';
+import { authApi } from '@/lib/api/auth';
+import type { User } from '@/lib/types';
 
-export async function getCurrentUser(): Promise<IUser | null> {
+export async function getCurrentUser(): Promise<User | null> {
   try {
-    // 1. Check if token exists first
-    const token = await getTokenCookie();
-    if (!token) return null;
-    
-    // 2. Validate token structure
-    const role = decodeAccessTokenRole(token);
-    if (!role) return null;
+    const cookieStore = await cookies();
+    const allCookies = cookieStore.getAll();
+    const cookieHeader = allCookies.map((c) => `${c.name}=${c.value}`).join('; ');
 
-    // 3. Return user data from cookie
-    const userData = await getUserInfoCookie();
-    if (userData) {
-      return userData as IUser;
-    }
+    if (!cookieHeader) return null;
 
+    const res = await authApi.me();
+    if (res.data) return res.data;
     return null;
   } catch {
     return null;
