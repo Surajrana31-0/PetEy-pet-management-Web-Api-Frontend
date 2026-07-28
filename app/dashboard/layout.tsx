@@ -1,5 +1,6 @@
-import Navbar from '@/app/_components/Navbar';
-import { DashboardShell } from '@/components/layout';
+import Sidebar from '@/app/_components/Sidebar';
+import DashboardHeader from '@/app/_components/DashboardHeader';
+import { DashboardShell, DashboardFooter } from '@/components/layout';
 import { requireAuthenticatedUser } from '@/lib/auth/guards';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -7,8 +8,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="dash-layout">
-      <Navbar user={user} />
-      <DashboardShell>{children}</DashboardShell>
+      <DashboardShell
+        sidebar={<Sidebar user={user} />}
+        header={<DashboardHeader user={user} />}
+        footer={<DashboardFooter />}
+      >
+        {children}
+      </DashboardShell>
     </div>
   );
 }
