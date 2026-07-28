@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 import { Button } from './button';
 
 interface PaginationProps {
@@ -39,7 +39,7 @@ export function Pagination({ page, totalPages, onPageChange, className }: Pagina
           <span key={p} className="flex items-center gap-2">
             {showEllipsis && <span className="px-1 text-muted">…</span>}
             <Button
-              variant={p === page ? 'primary' : 'outline'}
+              variant={p === page ? 'default' : 'outline'}
               size="sm"
               onClick={() => onPageChange(p)}
               aria-current={p === page ? 'page' : undefined}
