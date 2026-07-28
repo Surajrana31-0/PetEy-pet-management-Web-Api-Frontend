@@ -36,7 +36,20 @@ export function useWishlist() {
     [],
   );
 
+  const removeFromWishlist = useCallback((petId: string) => {
+    setWishlist((prev) => {
+      const next = prev.filter((id) => id !== petId);
+      localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const clearWishlist = useCallback(() => {
+    setWishlist([]);
+    localStorage.removeItem(WISHLIST_STORAGE_KEY);
+  }, []);
+
   const isWishlisted = useCallback((petId: string) => wishlist.includes(petId), [wishlist]);
 
-  return { wishlist, toggle, isWishlisted, ready, persist };
+  return { wishlist, toggle, removeFromWishlist, clearWishlist, isWishlisted, ready, persist };
 }

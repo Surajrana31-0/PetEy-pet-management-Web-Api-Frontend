@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { Mail, User } from 'lucide-react';
+import { Mail, User, UserCheck } from 'lucide-react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { registerSchema, type RegisterFormData } from '@/lib/auth/schemas';
@@ -21,16 +21,20 @@ export default function RegisterForm() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       fullName: '',
+      username: '',
       email: '',
       password: '',
       confirmPassword: '',
     },
   });
+
+  const passwordValue = watch('password', '');
 
   const onSubmit = (data: RegisterFormData) => {
     setServerError(null);
@@ -60,57 +64,91 @@ export default function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-1">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-0">
       {serverError && (
         <Alert variant="destructive" title="Registration failed" className="mb-4">
           {serverError}
         </Alert>
       )}
 
-      <div className="auth-field">
-        <label htmlFor="fullName" className="auth-label">
+      {/* Full Name */}
+      <div className="auth-field-modern">
+        <label htmlFor="fullName" className="required">
           Full name
         </label>
-        <div className="auth-field-control">
-          <span className="auth-field-icon" aria-hidden>
-            <User className="h-4 w-4 text-muted" />
+        <div className="auth-input-wrapper">
+          <span className="auth-input-icon-modern" aria-hidden>
+            <User className="h-4 w-4" />
           </span>
           <input
             id="fullName"
             type="text"
             placeholder="Your full name"
             autoComplete="name"
-            className="auth-field-input"
+            className={`auth-input-modern ${errors.fullName ? 'error' : ''}`}
             aria-invalid={!!errors.fullName}
             {...register('fullName')}
           />
         </div>
-        {errors.fullName && <span className="auth-error">{errors.fullName.message}</span>}
+        {errors.fullName && (
+          <span className="auth-error-modern">{errors.fullName.message}</span>
+        )}
       </div>
 
-      <div className="auth-field">
-        <label htmlFor="email" className="auth-label">
+      {/* Username */}
+      <div className="auth-field-modern">
+        <label htmlFor="username" className="required">
+          Username
+        </label>
+        <div className="auth-input-wrapper">
+          <span className="auth-input-icon-modern" aria-hidden>
+            <UserCheck className="h-4 w-4" />
+          </span>
+          <input
+            id="username"
+            type="text"
+            placeholder="your.username"
+            autoComplete="username"
+            className={`auth-input-modern ${errors.username ? 'error' : ''}`}
+            aria-invalid={!!errors.username}
+            {...register('username')}
+          />
+        </div>
+        {errors.username && (
+          <span className="auth-error-modern">{errors.username.message}</span>
+        )}
+        <p className="auth-hint-modern">
+          Letters, numbers, dots, hyphens, and underscores only.
+        </p>
+      </div>
+
+      {/* Email */}
+      <div className="auth-field-modern">
+        <label htmlFor="email" className="required">
           Email address
         </label>
-        <div className="auth-field-control">
-          <span className="auth-field-icon" aria-hidden>
-            <Mail className="h-4 w-4 text-muted" />
+        <div className="auth-input-wrapper">
+          <span className="auth-input-icon-modern" aria-hidden>
+            <Mail className="h-4 w-4" />
           </span>
           <input
             id="email"
             type="email"
             placeholder="you@example.com"
             autoComplete="email"
-            className="auth-field-input"
+            className={`auth-input-modern ${errors.email ? 'error' : ''}`}
             aria-invalid={!!errors.email}
             {...register('email')}
           />
         </div>
-        {errors.email && <span className="auth-error">{errors.email.message}</span>}
+        {errors.email && (
+          <span className="auth-error-modern">{errors.email.message}</span>
+        )}
       </div>
 
-      <div className="auth-field">
-        <label htmlFor="password" className="auth-label">
+      {/* Password */}
+      <div className="auth-field-modern">
+        <label htmlFor="password" className="required">
           Password
         </label>
         <PasswordField
@@ -119,15 +157,17 @@ export default function RegisterForm() {
           registration={register('password')}
           error={!!errors.password}
           autoComplete="new-password"
+          showStrength
+          passwordValue={passwordValue}
         />
-        {errors.password && <span className="auth-error">{errors.password.message}</span>}
-        <p className="auth-hint">
-          At least 8 characters with uppercase, lowercase, number, and special character.
-        </p>
+        {errors.password && (
+          <span className="auth-error-modern">{errors.password.message}</span>
+        )}
       </div>
 
-      <div className="auth-field">
-        <label htmlFor="confirmPassword" className="auth-label">
+      {/* Confirm Password */}
+      <div className="auth-field-modern">
+        <label htmlFor="confirmPassword" className="required">
           Confirm password
         </label>
         <PasswordField
@@ -138,25 +178,34 @@ export default function RegisterForm() {
           autoComplete="new-password"
         />
         {errors.confirmPassword && (
-          <span className="auth-error">{errors.confirmPassword.message}</span>
+          <span className="auth-error-modern">{errors.confirmPassword.message}</span>
         )}
       </div>
 
-      <label className="auth-checkbox-label auth-row--top">
-        <input
-          type="checkbox"
-          checked={agreed}
-          onChange={(e) => setAgreed(e.target.checked)}
-          className="auth-native-checkbox"
-        />
-        <span className="auth-checkbox-text">I agree to the Terms and Privacy Policy</span>
+      {/* Terms */}
+      <label className="auth-row-modern">
+        <div className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-border text-brand focus:ring-brand"
+          />
+          <span className="text-sm text-muted">
+            I agree to the{' '}
+            <a href="/terms" className="text-brand hover:text-brand-hover">
+              Terms and Privacy Policy
+            </a>
+          </span>
+        </div>
       </label>
 
+      {/* Submit */}
       <Button
         type="submit"
         variant="brand"
         size="lg"
-        className="auth-submit-btn w-full rounded-full"
+        className="auth-submit-modern"
         isLoading={isPending}
         disabled={!agreed}
       >

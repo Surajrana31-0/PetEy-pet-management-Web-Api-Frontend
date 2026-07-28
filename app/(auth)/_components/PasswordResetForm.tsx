@@ -7,7 +7,6 @@ import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { resetPasswordSchema, type ResetPasswordData } from '@/lib/auth/schemas';
 import { handleResetPassword } from '@/lib/actions/auth-action';
@@ -26,24 +25,27 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ResetPasswordData>({
     resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { password: '', confirmPassword: '' },
+    defaultValues: { token: token || '', newPassword: '', confirmPassword: '' },
   });
+
+  const passwordValue = watch('newPassword', '');
 
   if (!token) {
     return (
-      <div className="text-center space-y-4">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100 text-destructive">
-          <AlertCircle className="h-7 w-7" aria-hidden />
+      <div className="auth-error-state-modern">
+        <div className="auth-error-state-modern__icon">
+          <AlertCircle />
         </div>
-        <h2 className="text-lg font-semibold text-foreground">Invalid reset link</h2>
-        <p className="text-sm text-muted">
+        <h2 className="auth-success-modern__title">Invalid reset link</h2>
+        <p className="auth-success-modern__message">
           This password reset link is missing or expired. Request a new one.
         </p>
-        <Link href="/forget-password">
-          <Button variant="primary" className="w-full">
+        <Link href="/forget-password" className="mt-6 inline-block">
+          <Button variant="brand" className="auth-submit-modern">
             Request new link
           </Button>
         </Link>
@@ -56,7 +58,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
     startTransition(async () => {
       try {
-        const response = await handleResetPassword(token, data.password);
+        const response = await handleResetPassword(token, data.newPassword);
 
         if (!response.success) {
           setServerError(response.message || 'Failed to reset password.');
@@ -79,40 +81,44 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   if (isSuccess) {
     return (
-      <div className="text-center space-y-4">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-green-700">
-          <CheckCircle2 className="h-7 w-7" aria-hidden />
+      <div className="auth-success-modern">
+        <div className="auth-success-modern__icon">
+          <CheckCircle2 />
         </div>
-        <h2 className="text-lg font-semibold text-foreground">Password updated</h2>
-        <p className="text-sm text-muted">Redirecting you to sign in…</p>
+        <h2 className="auth-success-modern__title">Password updated</h2>
+        <p className="auth-success-modern__message">Redirecting you to sign in…</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-1">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-0">
       {serverError && (
-        <Alert variant="destructive" title="Reset failed" className="mb-4">
-          {serverError}
-        </Alert>
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+          <span className="font-semibold">Reset failed:</span> {serverError}
+        </div>
       )}
 
-      <div className="auth-field">
-        <label htmlFor="password" className="auth-label">
+      <div className="auth-field-modern">
+        <label htmlFor="password" className="required">
           New password
         </label>
         <PasswordField
           id="password"
           placeholder="Enter new password"
-          registration={register('password')}
-          error={!!errors.password}
+          registration={register('newPassword')}
+          error={!!errors.newPassword}
           autoComplete="new-password"
+          showStrength
+          passwordValue={passwordValue}
         />
-        {errors.password && <span className="auth-error">{errors.password.message}</span>}
+        {errors.newPassword && (
+          <span className="auth-error-modern">{errors.newPassword.message}</span>
+        )}
       </div>
 
-      <div className="auth-field">
-        <label htmlFor="confirmPassword" className="auth-label">
+      <div className="auth-field-modern">
+        <label htmlFor="confirmPassword" className="required">
           Confirm new password
         </label>
         <PasswordField
@@ -123,11 +129,17 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           autoComplete="new-password"
         />
         {errors.confirmPassword && (
-          <span className="auth-error">{errors.confirmPassword.message}</span>
+          <span className="auth-error-modern">{errors.confirmPassword.message}</span>
         )}
       </div>
 
-      <Button type="submit" variant="brand" size="lg" className="auth-submit-btn w-full rounded-full" isLoading={isPending}>
+      <Button
+        type="submit"
+        variant="brand"
+        size="lg"
+        className="auth-submit-modern"
+        isLoading={isPending}
+      >
         Reset password
       </Button>
 

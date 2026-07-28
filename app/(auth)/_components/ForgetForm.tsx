@@ -6,7 +6,6 @@ import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   requestPasswordResetSchema,
@@ -55,18 +54,18 @@ export default function ForgetForm() {
 
   if (isSuccess) {
     return (
-      <div className="text-center space-y-4">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-green-700">
-          <CheckCircle2 className="h-7 w-7" aria-hidden />
+      <div className="auth-success-modern">
+        <div className="auth-success-modern__icon">
+          <CheckCircle2 />
         </div>
-        <h2 className="text-lg font-semibold text-foreground">Check your inbox</h2>
-        <p className="text-sm text-muted leading-relaxed">
+        <h2 className="auth-success-modern__title">Check your inbox</h2>
+        <p className="auth-success-modern__message">
           If an account exists for{' '}
           <span className="font-medium text-foreground">{getValues('email')}</span>, we sent a
           password reset link.
         </p>
-        <Link href="/login">
-          <Button variant="primary" className="w-full">
+        <Link href="/login" className="mt-6 inline-block">
+          <Button variant="brand" className="auth-submit-modern">
             Back to sign in
           </Button>
         </Link>
@@ -75,35 +74,43 @@ export default function ForgetForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-1">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-0">
       {serverError && (
-        <Alert variant="destructive" title="Request failed" className="mb-4">
-          {serverError}
-        </Alert>
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+          <span className="font-semibold">Request failed:</span> {serverError}
+        </div>
       )}
 
-      <div className="auth-field">
-        <label htmlFor="email" className="auth-label">
+      <div className="auth-field-modern">
+        <label htmlFor="email" className="required">
           Email address
         </label>
-        <div className="auth-field-control">
-          <span className="auth-field-icon" aria-hidden>
-            <Mail className="h-4 w-4 text-muted" />
+        <div className="auth-input-wrapper">
+          <span className="auth-input-icon-modern" aria-hidden>
+            <Mail className="h-4 w-4" />
           </span>
           <input
             id="email"
             type="email"
             placeholder="you@example.com"
             autoComplete="email"
-            className="auth-field-input"
+            className={`auth-input-modern ${errors.email ? 'error' : ''}`}
             aria-invalid={!!errors.email}
             {...register('email')}
           />
         </div>
-        {errors.email && <span className="auth-error">{errors.email.message}</span>}
+        {errors.email && (
+          <span className="auth-error-modern">{errors.email.message}</span>
+        )}
       </div>
 
-      <Button type="submit" variant="brand" size="lg" className="auth-submit-btn w-full rounded-full" isLoading={isPending}>
+      <Button
+        type="submit"
+        variant="brand"
+        size="lg"
+        className="auth-submit-modern"
+        isLoading={isPending}
+      >
         Send reset link
       </Button>
 

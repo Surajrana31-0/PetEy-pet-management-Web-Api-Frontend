@@ -1,131 +1,230 @@
 import Link from 'next/link';
 import { requireAdminRole } from '@/lib/auth/guards';
 import { petsApi } from '@/lib/api/pets';
-import type { IPet } from '@/lib/types/pet';
+import { adoptionsApi } from '@/lib/api/adoptions';
+import { getAllUsers } from '@/lib/api/admin/users';
 import { PetStatus } from '@/lib/types/pet';
-
-function statusClass(status: PetStatus): string {
-  if (status === PetStatus.AVAILABLE) return 'dash-status--available';
-  if (status === PetStatus.PENDING) return 'dash-status--pending';
-  return 'dash-status--adopted';
-}
+import { Card, CardContent } from '@/components/ui/card';
+import { PawPrint, FileText, Users, Stethoscope, BookOpen, Plus, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Avatar } from '@/components/ui/avatar';
 
 export default async function AdminDashboardPage() {
   const admin = await requireAdminRole();
-  const initial = admin.fullName.charAt(0).toUpperCase();
 
-  let pets: IPet[] = [];
+  let petsCount = 0;
+  let availableCount = 0;
+  let pendingAdoptionsCount = 0;
+  let totalUsersCount = 0;
+
   try {
-    const response = await petsApi.getAll();
-    pets = response.success && response.data ? response.data : [];
+    const [petsRes, pendingRes, usersRes] = await Promise.all([
+      petsApi.getAll(),
+      adoptionsApi.getPending(),
+      getAllUsers(),
+    ]);
+
+    if (petsRes.success && petsRes.data?.pets) {
+      petsCount = petsRes.data.pets.length;
+      availableCount = petsRes.data.pets.filter((p: any) => p.status === PetStatus.AVAILABLE).length;
+    }
+    if (pendingRes.success && pendingRes.data) {
+      const apps = Array.isArray(pendingRes.data) ? pendingRes.data : pendingRes.data.adoptions || [];
+      pendingAdoptionsCount = apps.length;
+    }
+    if (usersRes.success && usersRes.data) {
+      const users = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data.users || [];
+      totalUsersCount = users.length;
+    }
   } catch {
-    pets = [];
+    // Fallback
   }
 
-  const available = pets.filter((p) => p.status === PetStatus.AVAILABLE).length;
-  const adopted = pets.filter((p) => p.status === PetStatus.ADOPTED).length;
-  const recent = pets.slice(0, 5);
-
   return (
-    <div className="dash-page">
-      <section className="dash-hero">
-        <div className="dash-hero-inner">
-          <div className="dash-hero-text">
-            <span className="dash-badge dash-badge--admin">Administrator</span>
-            <h1>Admin Control Panel</h1>
-            <p>
-              Welcome, {admin.fullName}. Manage pet listings, monitor adoption activity,
-              and keep the platform running smoothly.
-            </p>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-8">
+      {/* Admin Control Banner */}
+      <section className="dashboard-header">
+        <div className="space-y-2 max-w-xl">
+          <span className="hero-eyebrow">
+            System Command Center
+          </span>
+          <h1 className="dashboard-header-title">
+            Welcome, Administrator {admin.fullName ? admin.fullName.split(' ')[0] : 'User'}
+          </h1>
+          <p className="dashboard-header-desc">
+            Manage pet listings, review applicant questionnaires, supervise registered doctors, and administer system users.
+          </p>
+        </div>
+        <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-[var(--border-light)] shadow-sm">
+          <Avatar src={admin.profileImage} name={admin.fullName} size="lg" className="ring-2 ring-[var(--brand-primary)]" />
+          <div className="flex-1">
+            <span className="text-xs font-semibold text-[var(--text-muted)] block">System Administrator</span>
+            <strong className="text-sm font-bold text-[var(--text-dark)] block">{admin.fullName}</strong>
+            <span className="text-[10px] text-[var(--brand-primary)] uppercase font-mono font-bold">SUPERADMIN</span>
           </div>
-          <div className="dash-hero-avatar" aria-hidden>{initial}</div>
-        </div>
-      </section>
-
-      <section className="dash-stats">
-        <div className="dash-stat">
-          <p className="dash-stat-label">Total Pets</p>
-          <p className="dash-stat-value">{pets.length}</p>
-        </div>
-        <div className="dash-stat">
-          <p className="dash-stat-label">Available</p>
-          <p className="dash-stat-value dash-stat-value--accent">{available}</p>
-        </div>
-        <div className="dash-stat">
-          <p className="dash-stat-label">Adopted</p>
-          <p className="dash-stat-value">{adopted}</p>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="dash-section-title">Quick Actions</h2>
-        <div className="dash-grid">
-          <Link href="/dashboard/admin/pets/new" className="dash-card dash-card--link">
-            <div className="dash-card-icon">➕</div>
-            <p className="dash-card-title">Add New Pet</p>
-            <p className="dash-card-desc">Create a new pet listing for adoption.</p>
-            <span className="dash-card-cta">Create listing →</span>
+          <Link
+            href="/dashboard/profile"
+            className="text-xs font-semibold text-[var(--brand-primary)] bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"
+          >
+            Edit Profile
           </Link>
-
-          <Link href="/dashboard/admin/pets" className="dash-card dash-card--link">
-            <div className="dash-card-icon">🐾</div>
-            <p className="dash-card-title">Manage Pets</p>
-            <p className="dash-card-desc">View, edit, or remove existing pet listings.</p>
-            <span className="dash-card-cta">Go to table →</span>
-          </Link>
-
-          <div className="dash-card">
-            <div className="dash-card-icon">📬</div>
-            <p className="dash-card-title">Adoption Requests</p>
-            <p className="dash-card-desc">Review and approve user adoption applications.</p>
-            <span className="dash-card-cta" style={{ color: '#9a9a9a' }}>Coming soon</span>
-          </div>
         </div>
       </section>
 
-      {recent.length > 0 && (
-        <section>
-          <div className="dash-page-header">
+      {/* Metrics Row */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Link href="/dashboard/admin/pets" className="block">
+          <div className="metric-card">
             <div>
-              <h2 className="dash-section-title" style={{ marginBottom: 0 }}>Recent Listings</h2>
-              <p>Latest pets added to the platform</p>
+              <p className="metric-label">Total Pets</p>
+              <h3 className="metric-value">{petsCount}</h3>
+              <span className="text-[11px] font-semibold text-emerald-600">{availableCount} Available</span>
             </div>
-            <Link href="/dashboard/admin/pets" className="dash-btn-sm">View all</Link>
+            <div className="metric-icon-wrap">
+              <PawPrint className="w-6 h-6" />
+            </div>
           </div>
-          <div className="dash-table-wrap" style={{ marginTop: 16 }}>
-            <table className="dash-table">
-              <thead>
-                <tr>
-                  <th>Pet</th>
-                  <th>Species</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recent.map((pet) => (
-                  <tr key={pet._id}>
-                    <td>
-                      <div className="dash-pet-cell">
-                        <div className="dash-pet-emoji">{pet.emoji}</div>
-                        <div>
-                          <p className="dash-pet-name">{pet.name}</p>
-                          <p className="dash-pet-meta">{pet.breed} • {pet.age}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td>{pet.species}</td>
-                    <td>
-                      <span className={`dash-status ${statusClass(pet.status)}`}>
-                        {pet.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        </Link>
+
+        <Link href="/dashboard/admin/adoptions" className="block">
+          <div className="metric-card">
+            <div>
+              <p className="metric-label">Pending Review</p>
+              <h3 className="metric-value">{pendingAdoptionsCount}</h3>
+              <span className="text-[11px] text-[var(--text-muted)]">Applications</span>
+            </div>
+            <div className="metric-icon-wrap">
+              <FileText className="w-6 h-6" />
+            </div>
           </div>
-        </section>
-      )}
+        </Link>
+
+        <Link href="/dashboard/admin/users" className="block">
+          <div className="metric-card">
+            <div>
+              <p className="metric-label">Total Users</p>
+              <h3 className="metric-value">{totalUsersCount}</h3>
+              <span className="text-[11px] text-[var(--text-muted)]">Registered Accounts</span>
+            </div>
+            <div className="metric-icon-wrap">
+              <Users className="w-6 h-6" />
+            </div>
+          </div>
+        </Link>
+
+        <Link href="/dashboard/admin/vets" className="block">
+          <div className="metric-card">
+            <div>
+              <p className="metric-label">Veterinarians</p>
+              <h3 className="metric-value">View</h3>
+              <span className="text-[11px] text-[var(--brand-primary)] font-semibold">Active Providers</span>
+            </div>
+            <div className="metric-icon-wrap">
+              <Stethoscope className="w-6 h-6" />
+            </div>
+          </div>
+        </Link>
+      </section>
+
+      {/* Admin Modules Navigation */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-bold text-[var(--text-dark)]">Admin Control Center Modules</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Link
+            href="/dashboard/admin/adoptions"
+            className="p-6 rounded-2xl bg-white border border-[var(--border-light)] shadow-sm hover:shadow-md hover:border-[var(--brand-primary)] transition-all group flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <FileText className="w-6 h-6" />
+              </div>
+              <h4 className="text-base font-bold text-[var(--text-dark)]">Adoption Review Queue</h4>
+              <p className="text-xs text-[var(--text-muted)] mt-1">
+                Inspect applicant questionnaire submissions, check AI compatibility scores, approve or reject applications.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-amber-600 mt-6 inline-flex items-center gap-1">
+              <span>Review {pendingAdoptionsCount} Pending Requests</span>
+              <ArrowRight className="w-4 h-4" />
+            </span>
+          </Link>
+
+          <Link
+            href="/dashboard/admin/pets/new"
+            className="p-6 rounded-2xl bg-white border border-[var(--border-light)] shadow-sm hover:shadow-md hover:border-[var(--brand-primary)] transition-all group flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Plus className="w-6 h-6" />
+              </div>
+              <h4 className="text-base font-bold text-[var(--text-dark)]">Add New Pet Listing</h4>
+              <p className="text-xs text-[var(--text-muted)] mt-1">
+                Create new pet profiles with multi-photo upload and AI description auto-generator.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-emerald-600 mt-6 inline-flex items-center gap-1">
+              <span>Create Pet Profile</span>
+              <ArrowRight className="w-4 h-4" />
+            </span>
+          </Link>
+
+          <Link
+            href="/dashboard/admin/users"
+            className="p-6 rounded-2xl bg-white border border-[var(--border-light)] shadow-sm hover:shadow-md hover:border-[var(--brand-primary)] transition-all group flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Users className="w-6 h-6" />
+              </div>
+              <h4 className="text-base font-bold text-[var(--text-dark)]">User Directory & RBAC</h4>
+              <p className="text-xs text-[var(--text-muted)] mt-1">
+                View all registered accounts, modify user roles between USER and ADMIN, manage credentials.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-indigo-600 mt-6 inline-flex items-center gap-1">
+              <span>Manage {totalUsersCount} Users</span>
+              <ArrowRight className="w-4 h-4" />
+            </span>
+          </Link>
+
+          <Link
+            href="/dashboard/admin/vets"
+            className="p-6 rounded-2xl bg-white border border-[var(--border-light)] shadow-sm hover:shadow-md hover:border-[var(--brand-primary)] transition-all group flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Stethoscope className="w-6 h-6" />
+              </div>
+              <h4 className="text-base font-bold text-[var(--text-dark)]">Veterinarians Directory</h4>
+              <p className="text-xs text-[var(--text-muted)] mt-1">
+                Manage registered certified doctors, specializations, consultation fees, and active availability.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-teal-600 mt-6 inline-flex items-center gap-1">
+              <span>Manage Vets</span>
+              <ArrowRight className="w-4 h-4" />
+            </span>
+          </Link>
+
+          <Link
+            href="/dashboard/admin/blogs"
+            className="p-6 rounded-2xl bg-white border border-[var(--border-light)] shadow-sm hover:shadow-md hover:border-[var(--brand-primary)] transition-all group flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <h4 className="text-base font-bold text-slate-900 dark:text-white">Blog & Articles Publisher</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Write pet care stories, publish announcements, and manage draft articles.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-purple-600 dark:text-purple-400 mt-6 inline-flex items-center gap-1">
+              <span>Manage Blog Articles</span>
+              <ArrowRight className="w-4 h-4" />
+            </span>
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

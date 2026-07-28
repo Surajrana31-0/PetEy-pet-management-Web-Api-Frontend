@@ -27,7 +27,7 @@ export enum PetStatus {
 export interface IPet {
   _id: string;
   name: string;
-  age: string;
+  age: number;
   breed: string;
   species: PetSpecies;
   description: string;
@@ -75,7 +75,7 @@ export interface IPetQueryParams {
 
 export interface ICreatePetPayload {
   name: string;
-  age: string;
+  age: number;
   breed: string;
   species: PetSpecies;
   description: string;
@@ -85,7 +85,7 @@ export interface ICreatePetPayload {
 
 export interface IUpdatePetPayload {
   name?: string;
-  age?: string;
+  age?: number;
   breed?: string;
   species?: PetSpecies;
   description?: string;

@@ -1,23 +1,25 @@
-
-import { whoami } from "../api/auth";
-// import { setUserInfoCookie } from "../cookies";
+import { getUserInfoCookie, getTokenCookie } from "../cookies";
+import { decodeAccessTokenRole } from "./roles";
 import type { IUser } from "../types/auth";
 
 export async function getCurrentUser(): Promise<IUser | null> {
   try {
-    const response = await whoami();
+    // 1. Check if token exists first
+    const token = await getTokenCookie();
+    if (!token) return null;
+    
+    // 2. Validate token structure
+    const role = decodeAccessTokenRole(token);
+    if (!role) return null;
 
-    if (response.success && response.data) {
-      // We'll discuss this line next
-      // await setUserInfoCookie(response.data);
-
-      return response.data;
+    // 3. Return user data from cookie
+    const userData = await getUserInfoCookie();
+    if (userData) {
+      return userData as IUser;
     }
 
     return null;
-  } catch (error) {
-    // TEMP DEBUG — remove once the 401 cause is confirmed
-    console.error('[getCurrentUser] Error fetching current user', error instanceof Error ? error.message : error);
+  } catch {
     return null;
   }
 }

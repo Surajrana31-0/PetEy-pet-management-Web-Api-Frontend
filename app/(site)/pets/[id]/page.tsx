@@ -139,10 +139,10 @@ export default async function PetDetailPage({ params }: { params: Promise<{ id: 
 
                 {pet.status === PetStatus.AVAILABLE ? (
                   <div className="pet-detail-cta">
-                    <Link href="/register" className="btn-primary">
+                    <Link href={`/pets/${pet._id}/adopt`} className="btn-primary">
                       Start adoption process
                     </Link>
-                    <Link href="/ai" className="btn-outline">
+                    <Link href="/ai-assistant" className="btn-outline">
                       Check AI compatibility
                     </Link>
                   </div>

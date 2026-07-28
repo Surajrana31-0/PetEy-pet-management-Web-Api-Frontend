@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { IPet } from '@/lib/types/pet';
 import { PetStatus } from '@/lib/types/pet';
 
@@ -44,14 +45,24 @@ export default function PetCard({ pet }: PetCardProps) {
         <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>
           {pet.description}
         </p>
-        <button
-          type="button"
-          className="btn-primary"
-          style={{ marginTop: 16, width: '100%', justifyContent: 'center' }}
-          disabled
-        >
-          Apply to Adopt (Coming Soon)
-        </button>
+        {pet.status === PetStatus.AVAILABLE ? (
+          <Link
+            href={`/dashboard/user/adoptions/new/${pet._id}`}
+            className="btn-primary"
+            style={{ marginTop: 16, width: '100%', justifyContent: 'center', display: 'flex' }}
+          >
+            Apply to Adopt
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="btn-primary"
+            style={{ marginTop: 16, width: '100%', justifyContent: 'center' }}
+            disabled
+          >
+            Not Available
+          </button>
+        )}
       </div>
     </article>
   );

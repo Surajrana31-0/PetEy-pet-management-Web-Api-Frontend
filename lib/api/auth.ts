@@ -4,6 +4,7 @@ import { ENDPOINTS } from "./endpoints";
 
 export const register = async (data: {
   fullName: string;
+  username: string;
   email: string;
   password: string;
 }) => {
@@ -84,5 +85,15 @@ export const resetPassword = async (token: string, newPassword: string) => {
     return response.data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || 'Reset password failed');
+  }
+};
+
+// Verify email — POST /api/v1/auth/verify-email { token }
+export const verifyEmail = async (token: string) => {
+  try {
+    const response = await axiosInstance.post(ENDPOINTS.AUTH.VERIFY_EMAIL, { token });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || 'Email verification failed');
   }
 };

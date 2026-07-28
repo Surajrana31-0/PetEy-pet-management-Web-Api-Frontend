@@ -4,6 +4,7 @@ import SafeImage from '@/app/_components/SafeImage';
 import { petsApi } from '@/lib/api/pets';
 import { HOME_IMAGES, getPetImage } from '@/lib/constants/home-images';
 import { PetSpecies, PetStatus, type IPet } from '@/lib/types/pet';
+import { getCurrentUser } from '@/lib/auth/session';
 
 type FeaturedPet = {
   _id: string;
@@ -120,8 +121,8 @@ const fallbackPets: FeaturedPet[] = [
 async function getFeaturedPets(): Promise<FeaturedPet[]> {
   try {
     const response = await petsApi.getAll(PetStatus.AVAILABLE);
-    if (response.success && response.data && response.data.length > 0) {
-      return response.data.slice(0, 4).map((pet: IPet, index: number) => ({
+    if (response.success && response.data && response.data.pets && response.data.pets.length > 0) {
+      return response.data.pets.slice(0, 4).map((pet: IPet, index: number) => ({
         _id: pet._id,
         name: pet.name,
         age: pet.age,
@@ -140,6 +141,7 @@ async function getFeaturedPets(): Promise<FeaturedPet[]> {
 
 export default async function HomePage() {
   const pets = await getFeaturedPets();
+  const user = await getCurrentUser();
 
   return (
     <>
@@ -161,10 +163,10 @@ export default async function HomePage() {
               creates a beautiful story of love, companionship, and happiness.
             </p>
             <div className="hero-cta">
-              <Link href="/register" className="btn-primary hero-btn-pulse">
-                Start Adopting
+              <Link href={user ? "/adopt" : "/register"} className="btn-primary hero-btn-pulse">
+                {user ? "Browse Pets" : "Start Adopting"}
               </Link>
-              <Link href="/login" className="btn-outline">Sign In →</Link>
+              {!user && <Link href="/login" className="btn-outline">Sign In →</Link>}
             </div>
           </AnimateIn>
 
@@ -249,7 +251,7 @@ export default async function HomePage() {
                     <span className="pet-name">{pet.name}</span>
                     <div className="pet-breed">{pet.breed}</div>
                     <p className="pet-desc">{pet.description}</p>
-                    <Link href="/register" className="btn-primary pet-meet-btn">
+                    <Link href={`/pets/${pet._id}`} className="btn-primary pet-meet-btn">
                       Meet {pet.name}
                     </Link>
                   </div>
@@ -260,7 +262,7 @@ export default async function HomePage() {
 
           <AnimateIn delay={200}>
             <div className="view-all-wrap">
-              <Link href="/register" className="view-all-link">Join to Browse All Pets →</Link>
+              <Link href="/adopt" className="view-all-link">Browse All Pets →</Link>
             </div>
           </AnimateIn>
         </div>
@@ -346,8 +348,10 @@ export default async function HomePage() {
               Start your adoption journey today.
             </p>
             <div className="cta-buttons">
-              <Link href="/register" className="cta-btn-white">Create Free Account</Link>
-              <Link href="/login" className="btn-primary">Sign In</Link>
+              <Link href={user ? "/adopt" : "/register"} className="cta-btn-white">
+                {user ? "Browse Pets" : "Create Free Account"}
+              </Link>
+              {!user && <Link href="/login" className="btn-primary">Sign In</Link>}
             </div>
           </AnimateIn>
         </div>

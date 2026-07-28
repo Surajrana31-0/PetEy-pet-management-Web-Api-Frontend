@@ -16,3 +16,6 @@ export * from './pagination';
 export * from './search-bar';
 export * from './filter-sidebar';
 export * from './form-field';
+export * from './stat-card';
+export * from './avatar';
+export * from './tabs';

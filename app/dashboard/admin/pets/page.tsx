@@ -17,7 +17,7 @@ export default async function AdminPetsPage() {
   let pets: IPet[] = [];
   try {
     const response = await petsApi.getAll();
-    pets = response.success && response.data ? response.data : [];
+    pets = response.success && response.data?.pets ? response.data.pets : [];
   } catch {
     pets = [];
   }

@@ -7,6 +7,10 @@ export default async function Header() {
   const user = await getCurrentUser();
   const dashboardPath = user ? getDashboardPathForRole(user.role) : '/login';
 
+  const adoptHref = user ? '/adopt' : '/login?redirect=/adopt';
+  const vetsHref = user ? '/vets' : '/login?redirect=/vets';
+  const aiHref = user ? '/ai-assistant' : '/login?redirect=/ai-assistant';
+
   return (
     <header className="navbar">
       <div className="container navbar-inner">
@@ -19,14 +23,20 @@ export default async function Header() {
           <Link href="/" className="nav-link">
             Home
           </Link>
-          <Link href="/adopt" className="nav-link">
+          <Link href={adoptHref} className="nav-link">
             Adopt
+          </Link>
+          <Link href={vetsHref} className="nav-link">
+            Vets
+          </Link>
+          <Link href={aiHref} className="nav-link">
+            AI Match
+          </Link>
+          <Link href="/blog" className="nav-link">
+            Blog
           </Link>
           <Link href="/about" className="nav-link">
             About
-          </Link>
-          <Link href="/contact" className="nav-link">
-            Contact
           </Link>
         </nav>
 

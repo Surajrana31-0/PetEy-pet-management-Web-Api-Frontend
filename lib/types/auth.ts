@@ -7,6 +7,7 @@ export interface IUser {
   _id: string;
   fullName: string;
   email: string;
+  profileImage?: string | null;
   phoneNumber?: string | null;
   address?: string | null;
   location?: string | null;

@@ -24,7 +24,7 @@ export async function handleGetAllBlogs(params: {
             }
         }
         return { success: false, data: [], pagination: null };
-    } catch (err: Error | any) {
+    } catch (err: any) {
         throw new Error(
             err.message || "Failed to get blogs"
         );

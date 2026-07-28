@@ -1,151 +1,237 @@
 'use server';
 
-import {
-  login,
-  logout,
-  register,
-  requestPasswordReset,
-  resetPassword,
-  whoami,
-  profileUpdate,
-  updatePassword,
-} from '@/lib/api/auth';
-import {
-  type ChangePasswordFormData,
-  type LoginFormData,
-  type ProfileFormData,
-  type RegisterFormData,
-} from '@/lib/auth/schemas';
-import { clearAuthCookies, getTokenCookie, setTokenCookie, setUserInfoCookie } from '../cookies';
+import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import type { ILoginResponseData } from '../types/auth';
+import type {
+  ChangePasswordFormData,
+  LoginFormData,
+  ProfileFormData,
+  RegisterFormData,
+} from '@/lib/auth/schemas';
+import { profileUpdate, updatePassword } from '@/lib/api/auth';
+import { setUserInfoCookie } from '@/lib/cookies';
 
-type ActionResult<T = unknown> = {
-  success: boolean;
-  message?: string;
-  data?: T;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8088';
+
+const COOKIE_BASE = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
 };
 
-export async function registerUser(
-  data: RegisterFormData,
-): Promise<ActionResult> {
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+async function serverPost(path: string, body: unknown, token?: string) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+    cache: 'no-store',
+  });
+
+  return res.json().catch(() => ({ success: false, message: 'Server error' }));
+}
+
+// ─── actions ────────────────────────────────────────────────────────────────
+
+/**
+ * Login — calls Express backend, then sets the tokens as browser cookies
+ * via the Next.js cookies() API (not relying on backend Set-Cookie headers).
+ */
+export async function loginUser(data: LoginFormData) {
   try {
-    const { confirmPassword: _confirm, ...payload } = data;
-    void _confirm;
+    const json = await serverPost('/api/v1/auth/login', data);
 
-    const result = await register(payload);
-
-    if (result.success) {
-      return {
-        success: true,
-        message: result.message || 'Registration successful',
-        data: result.data ?? undefined,
-      };
+    if (!json.success) {
+      return { success: false as const, message: json.message || 'Login failed' };
     }
 
-    return { success: false, message: result.message || 'Registration failed' };
-  } catch (error) {
+    const { accessToken, refreshToken, user } = json.data;
+
+    const cookieStore = await cookies();
+
+    cookieStore.set('accessToken', accessToken, {
+      ...COOKIE_BASE,
+      maxAge: 15 * 60, // 15 minutes — matches backend
+    });
+
+    cookieStore.set('refreshToken', refreshToken, {
+      ...COOKIE_BASE,
+      maxAge: 7 * 24 * 60 * 60, // 7 days — matches backend
+    });
+
+    if (user) {
+      cookieStore.set('user_data', JSON.stringify(user), {
+        ...COOKIE_BASE,
+        maxAge: 7 * 24 * 60 * 60,
+      });
+    }
+
+    return { success: true as const, data: json.data };
+  } catch (err) {
     return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Registration failed',
+      success: false as const,
+      message: err instanceof Error ? err.message : 'Login failed',
     };
   }
 }
 
-export async function loginUser(
-  data: LoginFormData,
-): Promise<ActionResult<ILoginResponseData>> {
+/**
+ * Register — calls the backend, does NOT set auth cookies (user must verify
+ * email / log in after registration).
+ */
+export async function registerUser(data: RegisterFormData) {
   try {
-    const result = await login(data);
-
-    if (result.success && result.data) {
-      const { user, accessToken } = result.data;
-
-      if (accessToken) {
-        await setTokenCookie(accessToken);
-      }
-      if (user) {
-        await setUserInfoCookie(user);
-      }
-
-      revalidatePath('/dashboard');
-
-      return {
-        success: true,
-        data: result.data,
-        message: result.message || 'Login successful',
-      };
-    }
-
-    return { success: false, message: result.message || 'Login failed' };
-  } catch (error) {
+    const { confirmPassword, ...payload } = data;
+    const json = await serverPost('/api/v1/auth/register', payload);
+    return { success: json.success as boolean, message: json.message as string };
+  } catch (err) {
     return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Login failed',
+      success: false as const,
+      message: err instanceof Error ? err.message : 'Registration failed',
     };
   }
 }
 
-export async function validateSession() {
-  const token = await getTokenCookie();
-  if (!token) {
-    return { valid: false as const };
+/**
+ * Logout — clears auth cookies from the browser and invalidates the backend session.
+ */
+export async function logoutUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('accessToken')?.value;
+
+  // Tell backend to invalidate the session (best-effort — don't block on failure)
+  if (token) {
+    await serverPost('/api/v1/auth/logout', {}, token).catch(() => {});
   }
 
-  try {
-    const result = await whoami();
+  // Always clear local cookies regardless of backend response
+  cookieStore.delete('accessToken');
+  cookieStore.delete('refreshToken');
+}
 
-    if (result.success && result.data) {
-      await setUserInfoCookie(result.data);
-      return { valid: true as const, user: result.data };
+/**
+ * Request a password-reset link.
+ */
+export async function handleRequestPasswordReset(email: string) {
+  try {
+    const json = await serverPost('/api/v1/auth/forgot-password', { email });
+    return { success: json.success as boolean, message: json.message as string };
+  } catch (err) {
+    return {
+      success: false as const,
+      message: err instanceof Error ? err.message : 'Failed to send reset link',
+    };
+  }
+}
+
+/**
+ * Reset password using the token from the email link.
+ */
+export async function handleResetPassword(data: { token: string; newPassword: string }) {
+  try {
+    const json = await serverPost('/api/v1/auth/reset-password', data);
+    return { success: json.success as boolean, message: json.message as string };
+  } catch (err) {
+    return {
+      success: false as const,
+      message: err instanceof Error ? err.message : 'Password reset failed',
+    };
+  }
+}
+
+/**
+ * Verify email with the token from the verification link.
+ */
+export async function handleVerifyEmail(token: string) {
+  try {
+    const json = await serverPost('/api/v1/auth/verify-email', { token });
+    return { success: json.success as boolean, message: json.message as string };
+  } catch (err) {
+    return {
+      success: false as const,
+      message: err instanceof Error ? err.message : 'Email verification failed',
+    };
+  }
+}
+
+/**
+ * Refresh the access token using the stored refresh token.
+ * Called automatically when the access token expires.
+ */
+export async function refreshAccessToken() {
+  try {
+    const cookieStore = await cookies();
+    const refreshToken = cookieStore.get('refreshToken')?.value;
+    if (!refreshToken) return { success: false as const, message: 'No refresh token' };
+
+    const json = await serverPost('/api/v1/auth/refresh-token', { refreshToken });
+
+    if (!json.success) {
+      cookieStore.delete('accessToken');
+      cookieStore.delete('refreshToken');
+      return { success: false as const, message: json.message };
     }
 
-    await clearAuthCookies();
-    return { valid: false as const };
+    cookieStore.set('accessToken', json.data.accessToken, {
+      ...COOKIE_BASE,
+      maxAge: 15 * 60,
+    });
+    cookieStore.set('refreshToken', json.data.refreshToken, {
+      ...COOKIE_BASE,
+      maxAge: 7 * 24 * 60 * 60,
+    });
+
+    return { success: true as const };
   } catch {
-    await clearAuthCookies();
-    return { valid: false as const };
+    return { success: false as const, message: 'Token refresh failed' };
   }
 }
 
-export async function getUserData() {
-  try {
-    const result = await whoami();
+type ActionResult = {
+  success: boolean;
+  message?: string;
+  data?: unknown;
+};
 
-    if (result.success && result.data) {
-      await setUserInfoCookie(result.data);
-      return {
-        success: true,
-        data: result.data,
-        message: result.message || 'Profile loaded',
-      };
+export async function updateProfileAction(data: ProfileFormData, imageFile?: File | null): Promise<ActionResult> {
+  try {
+    const formData = new FormData();
+    formData.append('fullName', data.fullName);
+
+    if (data.phoneNumber?.trim()) {
+      formData.append('phoneNumber', data.phoneNumber.trim());
+    }
+    if (data.address?.trim()) {
+      formData.append('address', data.address.trim());
+    }
+    if (data.location?.trim()) {
+      formData.append('location', data.location.trim());
     }
 
-    return { success: false, message: result.message || 'Failed to load profile' };
-  } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to load profile',
-    };
-  }
-}
+    if (imageFile) {
+      formData.append('profileImage', imageFile);
+    }
 
-export async function handleUpdateProfile(data: FormData): Promise<ActionResult> {
-  try {
-    const result = await profileUpdate(data);
+    const result = await profileUpdate(formData);
 
     if (result.success) {
       if (result.data) {
         await setUserInfoCookie(result.data);
       }
+
       revalidatePath('/dashboard');
       revalidatePath('/dashboard/user');
       revalidatePath('/dashboard/profile');
+
       return {
         success: true,
         data: result.data ?? undefined,
-        message: result.message || 'Profile updated',
+        message: result.message || 'Profile updated successfully',
       };
     }
 
@@ -156,23 +242,6 @@ export async function handleUpdateProfile(data: FormData): Promise<ActionResult>
       message: error instanceof Error ? error.message : 'Profile update failed',
     };
   }
-}
-
-export async function updateProfileAction(data: ProfileFormData): Promise<ActionResult> {
-  const formData = new FormData();
-  formData.append('fullName', data.fullName);
-
-  if (data.phoneNumber?.trim()) {
-    formData.append('phoneNumber', data.phoneNumber.trim());
-  }
-  if (data.address?.trim()) {
-    formData.append('address', data.address.trim());
-  }
-  if (data.location?.trim()) {
-    formData.append('location', data.location.trim());
-  }
-
-  return handleUpdateProfile(formData);
 }
 
 export async function handleUpdatePassword(
@@ -199,63 +268,4 @@ export async function handleUpdatePassword(
       message: error instanceof Error ? error.message : 'Password update failed',
     };
   }
-}
-
-export async function handleRequestPasswordReset(email: string): Promise<ActionResult> {
-  try {
-    const result = await requestPasswordReset(email);
-
-    if (result.success) {
-      return { success: true, message: result.message || 'Password reset email sent' };
-    }
-
-    return { success: false, message: result.message || 'Request password reset failed' };
-  } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Request password reset failed',
-    };
-  }
-}
-
-export async function handleResetPassword(
-  token: string,
-  newPassword: string,
-): Promise<ActionResult> {
-  try {
-    const result = await resetPassword(token, newPassword);
-
-    if (result.success) {
-      return { success: true, message: result.message || 'Password reset successful' };
-    }
-
-    return { success: false, message: result.message || 'Reset password failed' };
-  } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Reset password failed',
-    };
-  }
-}
-
-export async function logoutUser(): Promise<void> {
-  try {
-    const token = await getTokenCookie();
-    if (token) {
-      try {
-        await logout();
-      } catch {
-        // Continue clearing local session even if backend logout fails
-      }
-    }
-
-    await clearAuthCookies();
-    revalidatePath('/');
-    revalidatePath('/dashboard');
-  } catch (error) {
-    console.error('Logout failed:', error);
-    throw new Error('Logout failed. Please try again.');
-  }
-
-  redirect('/login');
 }

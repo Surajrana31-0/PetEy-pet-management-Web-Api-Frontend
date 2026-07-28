@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PawPrint } from 'lucide-react';
+import { PawPrint, CheckCircle, Clock, Shield, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 interface AuthShellProps {
@@ -12,21 +12,54 @@ interface AuthShellProps {
   className?: string;
 }
 
+const features = [
+  { icon: Heart, label: 'Find your perfect companion' },
+  { icon: Shield, label: 'Verified, healthy pets' },
+  { icon: Clock, label: 'Streamlined adoption' },
+  { icon: CheckCircle, label: 'Hassle-free process' },
+];
+
 export function AuthShell({ title, description, children, footer, className }: AuthShellProps) {
   return (
-    <div className={cn('auth-page-wrapper', className)}>
-      <Link href="/" className="auth-top-icon" aria-label="Back to PetEy home">
-        <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-          <PawPrint className="h-7 w-7" aria-hidden />
-        </span>
-      </Link>
+    <div className={cn('auth-layout', className)}>
+      {/* Left side: illustration */}
+      <div className="auth-illustration">
+        <div className="auth-illustration__bg" />
+        <div className="auth-illustration__content">
+          <div className="auth-illustration__icon">
+            <PawPrint />
+          </div>
+          <h2 className="auth-illustration__title">PetEy</h2>
+          <p className="auth-illustration__subtitle">
+            Join thousands of happy pet parents who found their forever companions
+            through our platform. Every adoption saves a life.
+          </p>
 
-      <h1 className="auth-heading">{title}</h1>
-      <p className="auth-subheading">{description}</p>
+          <div className="auth-illustration__features">
+            {features.map((feature) => (
+              <div key={feature.label} className="auth-illustration__feature">
+                <div className="auth-illustration__feature-icon">
+                  <feature.icon />
+                </div>
+                <span>{feature.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <div className="auth-card">
-        {children}
-        {footer}
+      {/* Right side: form */}
+      <div className="auth-form-side">
+        <div className="auth-card-modern">
+          <div className="auth-header">
+            <h1 className="auth-header__title">{title}</h1>
+            <p className="auth-header__subtitle">{description}</p>
+          </div>
+
+          {children}
+
+          {footer}
+        </div>
       </div>
     </div>
   );
@@ -40,9 +73,9 @@ interface AuthSwitchLinkProps {
 
 export function AuthSwitchLink({ prompt, href, linkText }: AuthSwitchLinkProps) {
   return (
-    <p className="auth-switch mt-6 text-center text-sm text-muted">
+    <p className="auth-switch-modern">
       {prompt}{' '}
-      <Link href={href} className="auth-switch-link font-semibold text-brand hover:text-brand-hover">
+      <Link href={href} className="font-semibold text-brand hover:text-brand-hover transition-colors">
         {linkText}
       </Link>
     </p>

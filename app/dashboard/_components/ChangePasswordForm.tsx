@@ -1,53 +1,20 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
 import { Alert } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField } from '@/components/ui/form-field';
 import { PasswordField } from '@/components/auth/password-field';
-import { handleUpdatePassword } from '@/lib/actions/auth-action';
-import { changePasswordSchema, type ChangePasswordFormData } from '@/lib/auth/schemas';
+import { useChangePasswordForm } from '@/app/dashboard/settings/_hooks/useChangePasswordForm';
 import { cn } from '@/lib/utils/cn';
 
 export function ChangePasswordForm() {
-  const [isPending, startTransition] = useTransition();
-  const [serverError, setServerError] = useState<string | null>(null);
-
+  const { form, isPending, serverError, onSubmit } = useChangePasswordForm();
   const {
     register,
-    handleSubmit,
-    reset,
     formState: { errors },
-  } = useForm<ChangePasswordFormData>({
-    resolver: zodResolver(changePasswordSchema),
-    defaultValues: {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    },
-  });
-
-  const onSubmit = (data: ChangePasswordFormData) => {
-    setServerError(null);
-
-    startTransition(async () => {
-      const result = await handleUpdatePassword(data);
-
-      if (!result.success) {
-        setServerError(result.message || 'Failed to update password.');
-        toast.error(result.message || 'Failed to update password.');
-        return;
-      }
-
-      reset();
-      toast.success(result.message || 'Password updated successfully.');
-    });
-  };
+  } = form;
 
   return (
     <Card className="max-w-2xl">
@@ -59,7 +26,7 @@ export function ChangePasswordForm() {
         </CardDescription>
       </CardHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={onSubmit} noValidate>
         <CardContent className="space-y-5">
           {serverError && (
             <Alert variant="destructive" title="Password update failed">

@@ -1,20 +1,12 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
 import { Mail, MapPin, Phone, User } from 'lucide-react';
-import { Alert } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
-import { updateProfileAction } from '@/lib/actions/auth-action';
-import { profileSchema, type ProfileFormData } from '@/lib/auth/schemas';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useProfileForm } from '@/app/dashboard/profile/_hooks/useProfileForm';
 import type { IUser } from '@/lib/types/auth';
 import { cn } from '@/lib/utils/cn';
 
@@ -22,39 +14,16 @@ interface EditProfileFormProps {
   user: IUser;
 }
 
-export function EditProfileForm({ user }: EditProfileFormProps) {
-  const router = useRouter();
-  const { checkAuth } = useAuth();
-  const [isPending, startTransition] = useTransition();
+import { useState, useRef } from 'react';
 
+export function EditProfileForm({ user }: EditProfileFormProps) {
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { form, isPending, onSubmit } = useProfileForm(user, imageFile);
   const {
     register,
-    handleSubmit,
     formState: { errors },
-  } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      fullName: user.fullName,
-      phoneNumber: user.phoneNumber ?? '',
-      address: user.address ?? '',
-      location: user.location ?? '',
-    },
-  });
-
-  const onSubmit = (data: ProfileFormData) => {
-    startTransition(async () => {
-      const result = await updateProfileAction(data);
-
-      if (!result.success) {
-        toast.error(result.message || 'Failed to update profile.');
-        return;
-      }
-
-      await checkAuth();
-      toast.success(result.message || 'Profile updated successfully.');
-      router.refresh();
-    });
-  };
+  } = form;
 
   return (
     <Card className="max-w-2xl">
@@ -65,7 +34,7 @@ export function EditProfileForm({ user }: EditProfileFormProps) {
         </CardDescription>
       </CardHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={onSubmit} noValidate>
         <CardContent className="space-y-5">
           <FormField label="Email address" htmlFor="email" hint="Contact support to change your email.">
             <div className="relative">
@@ -78,6 +47,20 @@ export function EditProfileForm({ user }: EditProfileFormProps) {
                 className="pl-10 bg-secondary/50"
               />
             </div>
+          </FormField>
+
+          <FormField label="Profile Photo" htmlFor="profilePhoto" hint="Upload a square image for best results.">
+            <input 
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setImageFile(file);
+              }}
+              className="w-full bg-[var(--section-bg)] border border-[var(--border-light)] rounded-xl px-4 py-2 focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--brand-primary)] file:text-white hover:file:bg-[var(--brand-hover)] cursor-pointer" 
+            />
+            {imageFile && <p className="text-sm text-emerald-600 mt-1 font-medium">Selected: {imageFile.name}</p>}
           </FormField>
 
           <FormField label="Full name" htmlFor="fullName" required error={errors.fullName?.message}>

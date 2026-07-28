@@ -19,7 +19,20 @@ export const getAllPets = async (params?: {
   try {
     const endpoint = params?.search ? ENDPOINTS.PETS.SEARCH : ENDPOINTS.PETS.GET;
     const response = await axiosInstance.get(endpoint, { params });
-    return response.data;
+    const data = response.data;
+
+    // Normalize: if data.data is a bare array, wrap it in a paginated shape
+    // so all callers can rely on { pets, total, page, limit }
+    if (data.success && Array.isArray(data.data)) {
+      data.data = {
+        pets: data.data,
+        total: data.data.length,
+        page: 1,
+        limit: data.data.length,
+      };
+    }
+
+    return data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || 'Failed to fetch pets');
   }
@@ -97,7 +110,7 @@ export const petsApi = {
   getAll: (arg?: PetStatus | IPetQueryParams) => getAllPets(toRequestParams(arg)),
   getById: getPetById,
   getCategories: getPetCategories,
-  create: async (data: ICreatePetPayload) => {
+  create: async (data: FormData) => {
     try {
       const response = await axiosInstance.post(ENDPOINTS.ADMIN.PETS.CREATE, data);
       return response.data;
@@ -105,7 +118,7 @@ export const petsApi = {
       throw new Error(error?.response?.data?.message || 'Failed to create pet');
     }
   },
-  update: async (id: string, data: IUpdatePetPayload) => {
+  update: async (id: string, data: FormData) => {
     try {
       const response = await axiosInstance.put(ENDPOINTS.PETS.UPDATE(id), data);
       return response.data;

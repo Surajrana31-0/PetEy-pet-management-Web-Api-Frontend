@@ -5,7 +5,7 @@ import { petsApi } from '../api/pets';
 import { ICreatePetPayload, IUpdatePetPayload, IPetActionResponse } from '@/lib/types/pet';
 
 
-export async function createPetAction(data: ICreatePetPayload) {
+export async function createPetAction(data: FormData) {
   try {
     const result = await petsApi.create(data);
 
@@ -35,7 +35,7 @@ export async function createPetAction(data: ICreatePetPayload) {
 
 export async function updatePetAction(
   id: string,
-  data: IUpdatePetPayload
+  data: FormData
 ): Promise<IPetActionResponse> {
   try {
     const result = await petsApi.update(id, data);

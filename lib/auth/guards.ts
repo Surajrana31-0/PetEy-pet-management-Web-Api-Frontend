@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { getDashboardPathForRole } from './roles';
 import { getCurrentUser } from './session';
 import type { IUser } from '../types/auth';
-import { UserRole } from '../types/auth';
 
 export async function requireAuthenticatedUser(): Promise<IUser> {
   const user = await getCurrentUser();
@@ -14,7 +13,8 @@ export async function requireAuthenticatedUser(): Promise<IUser> {
 
 export async function requireUserRole(): Promise<IUser> {
   const user = await requireAuthenticatedUser();
-  if (user.role !== UserRole.USER) {
+  const role = String(user.role).toUpperCase();
+  if (role === 'ADMIN') {
     redirect('/dashboard/admin');
   }
   return user;
@@ -22,7 +22,8 @@ export async function requireUserRole(): Promise<IUser> {
 
 export async function requireAdminRole(): Promise<IUser> {
   const user = await requireAuthenticatedUser();
-  if (user.role !== UserRole.ADMIN) {
+  const role = String(user.role).toUpperCase();
+  if (role !== 'ADMIN') {
     redirect('/dashboard/user');
   }
   return user;

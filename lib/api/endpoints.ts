@@ -53,8 +53,8 @@ export const ENDPOINTS = {
 
   // VETERINARIANS (public)
   VETS: {
-    GET: '/api/v1/vets',
-    GET_ONE: (id: string) => `/api/v1/vets/${id}`,
+    GET: '/api/v1/vet',
+    GET_ONE: (id: string) => `/api/v1/vet/${id}`,
   },
   // APPOINTMENTS (user-facing)
   APPOINTMENTS: {
@@ -85,12 +85,12 @@ export const ENDPOINTS = {
     },
     PETS: {
       STATS: '/api/v1/admin/pets/stats/dashboard',
-      GET: '/api/v1/pets',
-      GET_ONE: (id: string) => `/api/v1/pets/${id}`,
-      CREATE: '/api/v1/pets',
-      UPDATE: (id: string) => `/api/v1/pets/${id}`,
-      UPDATE_STATUS: (id: string) => `/api/v1/pets/${id}/status`,
-      DELETE: (id: string) => `/api/v1/pets/${id}`,
+      GET: '/api/v1/admin/pets',
+      GET_ONE: (id: string) => `/api/v1/admin/pets/${id}`,
+      CREATE: '/api/v1/admin/pets',
+      UPDATE: (id: string) => `/api/v1/admin/pets/${id}`,
+      UPDATE_STATUS: (id: string) => `/api/v1/admin/pets/${id}/status`,
+      DELETE: (id: string) => `/api/v1/admin/pets/${id}`,
     },
     VETS: {
       STATS:                '/api/v1/admin/vets/statistics',

@@ -8,7 +8,7 @@ import {
 } from './lib/auth/roles';
 import { UserRole } from './lib/types/auth';
 
-const AUTH_ROUTES = ['/login', '/register', '/forget-password', '/reset-password'];
+const AUTH_ROUTES = ['/login', '/register', '/forget-password', '/reset-password', '/verify-email'];
 
 function isAuthRoute(pathname: string): boolean {
   return AUTH_ROUTES.some((route) => pathname.startsWith(route));
@@ -20,10 +20,12 @@ function isDashboardRoute(pathname: string): boolean {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const authToken = request.cookies.get('auth_token')?.value;
+  // Read the accessToken cookie set by the backend's CookieUtil.setAuthCookies
+  const authToken = request.cookies.get('accessToken')?.value;
   const isAuthenticated = Boolean(authToken);
   const role = authToken ? decodeAccessTokenRole(authToken) : null;
 
+  // Unauthenticated users cannot access dashboard routes
   if (isDashboardRoute(pathname) && !isAuthenticated) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
@@ -31,18 +33,22 @@ export function middleware(request: NextRequest) {
   }
 
   if (isAuthenticated && role) {
+    // Authenticated users on auth pages → redirect to their role dashboard
     if (isAuthRoute(pathname)) {
       return NextResponse.redirect(new URL(getDashboardPathForRole(role), request.url));
     }
 
+    // /dashboard → auto-redirect based on JWT role
     if (pathname === '/dashboard') {
       return NextResponse.redirect(new URL(getDashboardPathForRole(role), request.url));
     }
 
+    // Role isolation: USER accessing admin routes → redirect to user dashboard
     if (isAdminRoute(pathname) && role !== UserRole.ADMIN) {
       return NextResponse.redirect(new URL('/dashboard/user', request.url));
     }
 
+    // Role isolation: ADMIN accessing user routes → redirect to admin dashboard
     if (isUserRoute(pathname) && role !== UserRole.USER) {
       return NextResponse.redirect(new URL('/dashboard/admin', request.url));
     }
@@ -52,5 +58,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/login', '/register', '/forget-password', '/reset-password', '/dashboard/:path*'],
+  matcher: ['/login', '/register', '/forget-password', '/reset-password', '/verify-email', '/dashboard/:path*'],
 };

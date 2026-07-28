@@ -1,26 +1,34 @@
 import { UserRole } from '../types/auth';
 
-export function getDashboardPathForRole(role: UserRole): string {
-  return role === UserRole.ADMIN ? '/dashboard/admin' : '/dashboard/user';
+export function getDashboardPathForRole(role: UserRole | string): string {
+  const r = String(role || '').toUpperCase();
+  return r === 'ADMIN' ? '/dashboard/admin' : '/dashboard/user';
 }
 
 export function decodeAccessTokenRole(token: string): UserRole | null {
   try {
-    const payloadSegment = token.split('.')[1];
-    if (!payloadSegment) {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (payload.length % 4 !== 0) {
+      payload += '=';
+    }
+
+    let decodedJson = '';
+    if (typeof Buffer !== 'undefined') {
+      decodedJson = Buffer.from(payload, 'base64').toString('utf8');
+    } else if (typeof atob !== 'undefined') {
+      decodedJson = atob(payload);
+    } else {
       return null;
     }
 
-    const normalized = payloadSegment.replace(/-/g, '+').replace(/_/g, '/');
-    const decoded = JSON.parse(atob(normalized)) as { role?: string };
+    const parsed = JSON.parse(decodedJson) as { role?: string };
+    const r = String(parsed.role || '').toUpperCase();
 
-    if (decoded.role === UserRole.ADMIN) {
-      return UserRole.ADMIN;
-    }
-
-    if (decoded.role === UserRole.USER) {
-      return UserRole.USER;
-    }
+    if (r === 'ADMIN') return UserRole.ADMIN;
+    if (r === 'USER') return UserRole.USER;
 
     return null;
   } catch {
@@ -36,17 +44,18 @@ export function isUserRoute(pathname: string): boolean {
   return pathname.startsWith('/dashboard/user');
 }
 
-export function isSafeRedirect(pathname: string, role: UserRole): boolean {
+export function isSafeRedirect(pathname: string, role: UserRole | string): boolean {
   if (!pathname.startsWith('/dashboard')) {
     return false;
   }
 
+  const r = String(role || '').toUpperCase();
   if (isAdminRoute(pathname)) {
-    return role === UserRole.ADMIN;
+    return r === 'ADMIN';
   }
 
   if (isUserRoute(pathname)) {
-    return role === UserRole.USER;
+    return r === 'USER';
   }
 
   return true;
