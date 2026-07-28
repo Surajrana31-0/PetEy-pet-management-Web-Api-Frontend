@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 import { Button } from './button';
 
 interface DialogProps {
@@ -128,9 +128,9 @@ export function ConfirmDialog({
           {cancelLabel}
         </Button>
         <Button
-          variant={variant === 'destructive' ? 'destructive' : 'primary'}
+          variant={variant === 'destructive' ? 'destructive' : 'default'}
           onClick={onConfirm}
-          isLoading={isLoading}
+          disabled={isLoading}
         >
           {confirmLabel}
         </Button>
