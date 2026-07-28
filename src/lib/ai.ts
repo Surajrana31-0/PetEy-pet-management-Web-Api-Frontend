@@ -116,7 +116,8 @@ export function getRecommendations(pets: Pet[], preferences: UserPreferences): P
   return pets.map((pet) => {
     const result = analyzeCompatibility(pet, preferences);
     let recommendation = '';
-    if (result.score >= 80) recommendation = 'Excellent match — this pet aligns great with your lifestyle!';n    else if (result.score >= 65) recommendation = 'Good match — this pet could be a great companion for you.';
+    if (result.score >= 80) recommendation = 'Excellent match — this pet aligns great with your lifestyle!';
+    else if (result.score >= 65) recommendation = 'Good match — this pet could be a great companion for you.';
     else if (result.score >= 50) recommendation = 'Fair match — consider your lifestyle before adopting.';
     else recommendation = 'May not be the best fit — review the concerns below.';
     return { petId: pet.id, name: pet.name, species: pet.species, breed: pet.breed, age: pet.age, image: pet.images?.[0], matchScore: result.score, recommendation, reasons: result.reasons, concerns: result.concerns };
