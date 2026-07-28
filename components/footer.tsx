@@ -1,88 +1,109 @@
-import Link from 'next/link';
-import { PawPrint, Mail, Phone, MapPin, Github, Twitter, Instagram } from 'lucide-react';
+import Link from "next/link";
 
-const FOOTER_SECTIONS = [
-  {
-    title: 'Platform',
-    links: [
-      { href: '/pets', label: 'Browse Pets' },
-      { href: '/ai-matcher', label: 'AI Pet Matcher' },
-      { href: '/about', label: 'About Us' },
-    ],
-  },
-  {
-    title: 'Account',
-    links: [
-      { href: '/login', label: 'Sign In' },
-      { href: '/register', label: 'Create Account' },
-      { href: '/forgot-password', label: 'Forgot Password' },
-    ],
-  },
-  {
-    title: 'Support',
-    links: [
-      { href: '/about', label: 'Help Center' },
-      { href: '/about', label: 'Contact' },
-      { href: '/about', label: 'Privacy Policy' },
-    ],
-  },
-];
-
-export function Footer() {
+export default function Footer() {
   return (
-    <footer className="border-t border-border bg-card/50">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
-          <div className="col-span-2 lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-warm text-white">
-                <PawPrint className="h-5 w-5" />
-              </span>
-              <span className="text-lg font-bold">PetEy</span>
-            </Link>
-            <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-              AI-powered pet adoption platform helping you find the perfect companion. Every pet deserves a loving home.
+    <footer className="footer">
+      <div className="container">
+        <div className="footer-grid">
+
+          {/* Brand column */}
+          <div className="footer-brand">
+            <div className="footer-logo">
+              <span className="logo-icon">🐾</span>
+              <span className="footer-logo-text">PET-EY</span>
+            </div>
+            <p className="footer-brand-desc">
+              Connecting loving families with adorable pets. We believe every
+              pet deserves a loving home and every family deserves the joy of
+              a furry companion.
             </p>
-            <div className="mt-4 flex gap-3">
-              <a href="#" aria-label="GitHub" className="text-muted-foreground transition-colors hover:text-primary">
-                <Github className="h-5 w-5" />
-              </a>
-              <a href="#" aria-label="Twitter" className="text-muted-foreground transition-colors hover:text-primary">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" aria-label="Instagram" className="text-muted-foreground transition-colors hover:text-primary">
-                <Instagram className="h-5 w-5" />
-              </a>
+            <div className="footer-socials">
+              <Link href="#" className="footer-social-btn" aria-label="Facebook">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                </svg>
+              </Link>
+              <Link href="#" className="footer-social-btn" aria-label="Twitter">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+                </svg>
+              </Link>
+              <Link href="#" className="footer-social-btn" aria-label="Instagram">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2"
+                  strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                </svg>
+              </Link>
             </div>
           </div>
 
-          {FOOTER_SECTIONS.map((section) => (
-            <div key={section.title}>
-              <h3 className="text-sm font-semibold">{section.title}</h3>
-              <ul className="mt-4 space-y-2">
-                {section.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-primary"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+          {/* Quick Links */}
+          <div>
+            <h4 className="footer-col-title">Quick Links</h4>
+            <ul className="footer-links">
+              {["Home", "Adopt a Pet", "About Us", "Contact", "Volunteer"].map((l) => (
+                <li key={l}>
+                  <Link href="#" className="footer-link">• {l}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Services */}
+          <div>
+            <h4 className="footer-col-title">Services</h4>
+            <ul className="footer-links">
+              {["Pet Care Tips", "Training Resources", "Veterinary Partners", "Foster Program", "Donate"].map((s) => (
+                <li key={s}>
+                  <Link href="#" className="footer-link">• {s}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h4 className="footer-col-title">Contact Us</h4>
+            <div className="footer-contact">
+              <div className="footer-contact-row">
+                <span className="footer-contact-icon">📍</span>
+                <span className="footer-contact-text">
+                  123 New Baneshower, Animal City, AC 12345
+                </span>
+              </div>
+              <div className="footer-contact-row">
+                <span className="footer-contact-icon">📞</span>
+                <span className="footer-contact-text">+1 (977) 123-4567</span>
+              </div>
+              <div className="footer-contact-row">
+                <span className="footer-contact-icon">✉️</span>
+                <span className="footer-contact-text">info@pet_Ey.xs4.com</span>
+              </div>
+              <div className="emergency-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <div>
+                  <div className="emergency-title">Emergency Pet Rescue:</div>
+                  <div className="emergency-sub">Available 24/7</div>
+                </div>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 sm:flex-row">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} PetEy. All rights reserved.
+        {/* Bottom bar */}
+        <div className="footer-bottom">
+          <p className="footer-copy">
+            © 2024 Pet-Ey. All rights reserved. Made with • for pets and their families.
           </p>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1"><Mail className="h-4 w-4" /> hello@petey.com</span>
-            <span className="flex items-center gap-1"><Phone className="h-4 w-4" /> +1 (555) 123-4567</span>
-            <span className="hidden items-center gap-1 sm:flex"><MapPin className="h-4 w-4" /> San Francisco, CA</span>
+          <div className="footer-legal">
+            <Link href="#" className="footer-legal-link">Privacy Policy</Link>
+            <Link href="#" className="footer-legal-link">Terms of Service</Link>
+            <Link href="#" className="footer-legal-link">Cookie Policy</Link>
           </div>
         </div>
       </div>
