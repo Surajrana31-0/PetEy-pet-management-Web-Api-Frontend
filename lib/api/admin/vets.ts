@@ -1,60 +1,63 @@
 import axiosInstance from '../axios-instance';
 import { ENDPOINTS } from '../endpoints';
+import { throwApiError } from '../errors';
+import type { IApiResponse } from '../../types/api';
+import type { IVeterinarian } from '../../types/vet';
 
-export const getAdminVets = async (params?: Record<string, any>) => {
+export async function getAdminVets(params?: Record<string, unknown>): Promise<IApiResponse<IVeterinarian[]>> {
   try {
     const response = await axiosInstance.get(ENDPOINTS.ADMIN.VETS.GET, { params });
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch admin veterinarians');
+  } catch (error) {
+    throwApiError(error, 'Failed to fetch admin veterinarians');
   }
-};
+}
 
-export const getAdminVetStats = async () => {
+export async function getAdminVetStats(): Promise<IApiResponse<Record<string, number>>> {
   try {
     const response = await axiosInstance.get(ENDPOINTS.ADMIN.VETS.STATS);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch vet statistics');
+  } catch (error) {
+    throwApiError(error, 'Failed to fetch vet statistics');
   }
-};
+}
 
-export const createVet = async (formData: FormData) => {
+export async function createVet(formData: FormData): Promise<IApiResponse<IVeterinarian>> {
   try {
     const response = await axiosInstance.post(ENDPOINTS.ADMIN.VETS.CREATE, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to create veterinarian');
+  } catch (error) {
+    throwApiError(error, 'Failed to create veterinarian');
   }
-};
+}
 
-export const updateVet = async (id: string, formData: FormData) => {
+export async function updateVet(id: string, formData: FormData): Promise<IApiResponse<IVeterinarian>> {
   try {
     const response = await axiosInstance.put(ENDPOINTS.ADMIN.VETS.UPDATE(id), formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to update veterinarian');
+  } catch (error) {
+    throwApiError(error, 'Failed to update veterinarian');
   }
-};
+}
 
-export const toggleVetActive = async (id: string) => {
+export async function toggleVetActive(id: string): Promise<IApiResponse<IVeterinarian>> {
   try {
     const response = await axiosInstance.patch(ENDPOINTS.ADMIN.VETS.TOGGLE_ACTIVE(id));
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to toggle active status');
+  } catch (error) {
+    throwApiError(error, 'Failed to toggle active status');
   }
-};
+}
 
-export const deleteVet = async (id: string) => {
+export async function deleteVet(id: string): Promise<IApiResponse<null>> {
   try {
     const response = await axiosInstance.delete(ENDPOINTS.ADMIN.VETS.DELETE(id));
     return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to delete veterinarian');
+  } catch (error) {
+    throwApiError(error, 'Failed to delete veterinarian');
   }
-};
+}
