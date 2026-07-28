@@ -1,62 +1,54 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import {
-  decodeAccessTokenRole,
-  getDashboardPathForRole,
-  isAdminRoute,
-  isUserRoute,
-} from './lib/auth/roles';
-import { UserRole } from './lib/types/auth';
+import { NextResponse, type NextRequest } from 'next/server';
+import { decodeJWT } from '@/lib/auth/roles';
 
-const AUTH_ROUTES = ['/login', '/register', '/forget-password', '/reset-password', '/verify-email'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/about', '/pets', '/api'];
 
-function isAuthRoute(pathname: string): boolean {
-  return AUTH_ROUTES.some((route) => pathname.startsWith(route));
+function isPublicPath(pathname: string): boolean {
+  if (pathname === '/') return true;
+  return PUBLIC_PATHS.some((p) => {
+    if (p === '/pets') return pathname.startsWith('/pets');
+    return pathname === p || pathname.startsWith(p + '/');
+  });
 }
 
-function isDashboardRoute(pathname: string): boolean {
-  return pathname.startsWith('/dashboard');
+function getTokenFromCookies(req: NextRequest): string | null {
+  const token = req.cookies.get('accessToken')?.value;
+  if (!token) return null;
+  const decoded = decodeJWT(token);
+  return decoded?.role || null;
 }
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  // Read the accessToken cookie set by the backend's CookieUtil.setAuthCookies
-  const authToken = request.cookies.get('accessToken')?.value;
-  const isAuthenticated = Boolean(authToken);
-  const role = authToken ? decodeAccessTokenRole(authToken) : null;
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const role = getTokenFromCookies(req);
 
-  // Unauthenticated users cannot access dashboard routes
-  if (isDashboardRoute(pathname) && !isAuthenticated) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
+  if (pathname === '/dashboard') {
+    const target = role === 'ADMIN' ? '/dashboard/admin' : '/dashboard/user';
+    return NextResponse.redirect(new URL(target, req.url));
   }
 
-  if (isAuthenticated && role) {
-    // Authenticated users on auth pages → redirect to their role dashboard
-    if (isAuthRoute(pathname)) {
-      return NextResponse.redirect(new URL(getDashboardPathForRole(role), request.url));
+  if (pathname.startsWith('/dashboard')) {
+    if (!role) {
+      const loginUrl = new URL('/login', req.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
     }
+    if (pathname.startsWith('/dashboard/admin') && role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/dashboard/user', req.url));
+    }
+    if (pathname.startsWith('/dashboard/user') && role !== 'USER') {
+      return NextResponse.redirect(new URL('/dashboard/admin', req.url));
+    }
+  }
 
-    // /dashboard → auto-redirect based on JWT role
-    if (pathname === '/dashboard') {
-      return NextResponse.redirect(new URL(getDashboardPathForRole(role), request.url));
-    }
-
-    // Role isolation: USER accessing admin routes → redirect to user dashboard
-    if (isAdminRoute(pathname) && role !== UserRole.ADMIN) {
-      return NextResponse.redirect(new URL('/dashboard/user', request.url));
-    }
-
-    // Role isolation: ADMIN accessing user routes → redirect to admin dashboard
-    if (isUserRoute(pathname) && role !== UserRole.USER) {
-      return NextResponse.redirect(new URL('/dashboard/admin', request.url));
-    }
+  if ((pathname === '/login' || pathname === '/register') && role) {
+    const target = role === 'ADMIN' ? '/dashboard/admin' : '/dashboard/user';
+    return NextResponse.redirect(new URL(target, req.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/login', '/register', '/forget-password', '/reset-password', '/verify-email', '/dashboard/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)'],
 };
