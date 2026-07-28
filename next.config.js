@@ -7,6 +7,11 @@ const nextConfig = {
   experimental: {
     serverActions: true,
   },
+  webpack: (config, { dev, isServer }) => {
+    config.cache = false;
+    config.parallelism = 1;
+    return config;
+  },
 };
 
 module.exports = nextConfig;
