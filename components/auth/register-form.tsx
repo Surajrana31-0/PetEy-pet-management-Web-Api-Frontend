@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Mail, Lock, User, UserCheck, Loader2, AlertCircle, Check } from 'lucide-react';
 import { registerSchema, type RegisterValues } from '@/lib/schemas/auth-schema';
-import { registerAction, type AuthFormState } from '@/lib/actions/auth-action';
+import { registerUser } from '@/lib/actions/auth-action';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,7 +25,7 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [password, setPassword] = useState('');
 
   const {
@@ -37,44 +37,46 @@ export function RegisterForm() {
     defaultValues: { fullName: '', username: '', email: '', password: '', confirmPassword: '' },
   });
 
-  const onSubmit = async (data: RegisterValues) => {
-    setPending(true);
+  const onSubmit = (data: RegisterValues) => {
     setServerError(null);
 
-    const formData = new FormData();
-    formData.set('fullName', data.fullName);
-    formData.set('username', data.username);
-    formData.set('email', data.email);
-    formData.set('password', data.password);
+    startTransition(async () => {
+      try {
+        const result = await registerUser({
+          fullName: data.fullName,
+          username: data.username,
+          email: data.email,
+          password: data.password,
+        });
 
-    try {
-      const result: AuthFormState = await registerAction({ error: null, success: false }, formData);
-      if (!result.success) {
-        setServerError(result.error || 'Registration failed. Please try again.');
-        setPending(false);
-        return;
+        if (result && result.success) {
+          toast.success('Account created! Redirecting to sign in…');
+          router.push('/login?registered=1');
+          return;
+        }
+
+        if (result && !result.success) {
+          setServerError(result.message || 'Registration failed. Please try again.');
+        }
+      } catch (error) {
+        if (
+          error &&
+          typeof error === 'object' &&
+          'digest' in error &&
+          typeof (error as { digest: unknown }).digest === 'string' &&
+          (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
+        ) {
+          return;
+        }
+        setServerError(
+          error instanceof Error ? error.message : 'Something went wrong. Please try again.',
+        );
       }
-      toast.success('Account created! Redirecting to sign in…');
-      router.push(result.redirectTo || '/login?registered=1');
-    } catch (error) {
-      if (
-        error &&
-        typeof error === 'object' &&
-        'digest' in error &&
-        typeof (error as { digest: unknown }).digest === 'string' &&
-        (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
-      ) {
-        return;
-      }
-      setServerError(
-        error instanceof Error ? error.message : 'Something went wrong. Please try again.',
-      );
-      setPending(false);
-    }
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate method="post">
       {serverError && (
         <div className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive animate-fade-in-down">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -218,8 +220,8 @@ export function RegisterForm() {
         )}
       </div>
 
-      <Button type="submit" disabled={pending} className="w-full gradient-warm text-white shadow-soft hover:shadow-glow">
-        {pending ? (
+      <Button type="submit" disabled={isPending} className="w-full gradient-warm text-white shadow-soft hover:shadow-glow">
+        {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account…
           </>
