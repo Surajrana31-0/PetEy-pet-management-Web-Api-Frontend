@@ -1,4 +1,5 @@
 import { requireAdminRole } from '@/lib/auth/guards';
+import { prepareServerRequest } from '@/lib/auth/server-request';
 import { getAllAdminPets } from '@/lib/api/admin/pets';
 import { AdminPetsTable } from './_components/AdminPetsTable';
 import type { Pet } from '@/lib/types';
@@ -10,6 +11,7 @@ import { Plus } from 'lucide-react';
 
 export default async function AdminPetsPage() {
   await requireAdminRole();
+  await prepareServerRequest();
 
   let pets: Pet[] = [];
   let error: string | null = null;

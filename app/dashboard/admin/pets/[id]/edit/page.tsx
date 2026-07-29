@@ -1,16 +1,17 @@
 import { requireAdminRole } from '@/lib/auth/guards';
+import { prepareServerRequest } from '@/lib/auth/server-request';
 import { getAdminPetById } from '@/lib/api/admin/pets';
 import PetForm from '@/app/_components/PetForm';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/skeletons';
 import { ErrorState } from '@/components/error-state';
 import type { IPet } from '@/lib/types/pet';
 
 export default async function EditPetPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await requireAdminRole();
+  await prepareServerRequest();
 
   let pet: IPet | null = null;
   let error: string | null = null;
