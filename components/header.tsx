@@ -1,73 +1,67 @@
 import Link from 'next/link';
-import { getDashboardPathForRole } from '@/lib/auth/roles';
 import { getCurrentUser } from '@/lib/auth/session';
+import { getDashboardPathForRole } from '@/lib/auth/roles';
 import { UserRole } from '@/lib/types/auth';
+import { PawPrint, Menu, X } from 'lucide-react';
 
 export default async function Header() {
   const user = await getCurrentUser();
   const dashboardPath = user ? getDashboardPathForRole(user.role) : '/login';
 
-  const adoptHref = user ? '/adopt' : '/login?redirect=/adopt';
-  const vetsHref = user ? '/vets' : '/login?redirect=/vets';
-  const aiHref = user ? '/ai-assistant' : '/login?redirect=/ai-assistant';
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/pets', label: 'Browse Pets' },
+    { href: '/ai-matcher', label: 'AI Match' },
+    { href: '/vets', label: 'Vets' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/about', label: 'About' },
+  ];
 
   return (
-    <header className="navbar">
-      <div className="container navbar-inner">
-        <Link href="/" className="logo">
-          <span className="logo-icon">🐾</span>
-          <span className="logo-text">PETEY</span>
-        </Link>
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <div className="container-page flex h-16 items-center justify-between">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-warm text-white shadow-soft transition-transform group-hover:scale-105">
+              <PawPrint className="h-5 w-5" />
+            </span>
+            <span className="text-xl font-bold tracking-tight">PetEy</span>
+          </Link>
 
-        <nav className="nav-links">
-          <Link href="/" className="nav-link">
-            Home
-          </Link>
-          <Link href={adoptHref} className="nav-link">
-            Adopt
-          </Link>
-          <Link href={vetsHref} className="nav-link">
-            Vets
-          </Link>
-          <Link href={aiHref} className="nav-link">
-            AI Match
-          </Link>
-          <Link href="/blog" className="nav-link">
-            Blog
-          </Link>
-          <Link href="/about" className="nav-link">
-            About
-          </Link>
-        </nav>
+          <nav className="hidden items-center gap-1 md:flex">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-muted"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
 
-        <div className="nav-auth">
+        <div className="flex items-center gap-3">
           {user ? (
-            <Link href={dashboardPath} className="btn-primary signup-btn">
+            <Link
+              href={dashboardPath}
+              className="inline-flex items-center justify-center rounded-xl gradient-warm px-5 py-2 text-sm font-semibold text-white shadow-soft transition-all hover:shadow-glow hover:scale-[1.02]"
+            >
               {user.role === UserRole.ADMIN ? 'Admin Dashboard' : 'My Dashboard'}
             </Link>
           ) : (
             <>
-              <Link href="/login" className="login-link">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Login
+              <Link
+                href="/login"
+                className="hidden rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+              >
+                Sign in
               </Link>
-              <Link href="/register" className="btn-primary signup-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-                Sign Up
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center rounded-xl gradient-warm px-5 py-2 text-sm font-semibold text-white shadow-soft transition-all hover:shadow-glow hover:scale-[1.02]"
+              >
+                Get Started
               </Link>
             </>
           )}
