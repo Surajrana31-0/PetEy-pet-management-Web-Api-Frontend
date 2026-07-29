@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { loginSchema, type LoginValues } from '@/lib/schemas/auth-schema';
-import { loginAction, type AuthFormState } from '@/lib/actions/auth-action';
+import { loginUser } from '@/lib/actions/auth-action';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,7 +20,7 @@ export function LoginForm() {
   const reset = params.get('reset') === 'true';
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const {
     register,
@@ -36,42 +36,43 @@ export function LoginForm() {
     if (reset) toast.success('Password updated! Sign in with your new password.');
   }, [registered, reset]);
 
-  const onSubmit = async (data: LoginValues) => {
-    setPending(true);
+  const onSubmit = (data: LoginValues) => {
     setServerError(null);
 
-    const formData = new FormData();
-    formData.set('email', data.email);
-    formData.set('password', data.password);
-    if (redirectTarget) formData.set('redirect', redirectTarget);
+    startTransition(async () => {
+      try {
+        const result = await loginUser({
+          email: data.email,
+          password: data.password,
+        });
 
-    try {
-      const result: AuthFormState = await loginAction({ error: null, success: false }, formData);
-      if (!result.success) {
-        setServerError(result.error || 'Login failed. Please try again.');
-        setPending(false);
-        return;
+        if (result && result.success) {
+          const target =
+            redirectTarget && redirectTarget.startsWith('/') && !redirectTarget.startsWith('//')
+              ? redirectTarget
+              : '/dashboard';
+          window.location.href = target;
+          return;
+        }
+
+        if (result && !result.success) {
+          setServerError(result.message || 'Login failed. Please try again.');
+        }
+      } catch (error) {
+        if (
+          error &&
+          typeof error === 'object' &&
+          'digest' in error &&
+          typeof (error as { digest: unknown }).digest === 'string' &&
+          (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
+        ) {
+          return;
+        }
+        setServerError(
+          error instanceof Error ? error.message : 'Login failed. Please try again.',
+        );
       }
-      if (result.redirectTo) {
-        window.location.href = result.redirectTo;
-      } else {
-        router.push('/dashboard');
-      }
-    } catch (error) {
-      if (
-        error &&
-        typeof error === 'object' &&
-        'digest' in error &&
-        typeof (error as { digest: unknown }).digest === 'string' &&
-        (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
-      ) {
-        return;
-      }
-      setServerError(
-        error instanceof Error ? error.message : 'Login failed. Please try again.',
-      );
-      setPending(false);
-    }
+    });
   };
 
   return (
@@ -137,8 +138,8 @@ export function LoginForm() {
         {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
       </div>
 
-      <Button type="submit" disabled={pending} className="w-full gradient-warm text-white">
-        {pending ? (
+      <Button type="submit" disabled={isPending} className="w-full gradient-warm text-white">
+        {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in…
           </>
