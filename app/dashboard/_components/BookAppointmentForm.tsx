@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
-import type { IAvailability } from '@/lib/types/vet';
+import type { IAvailabilitySlot } from '@/lib/types/vet';
 import { bookAppointmentAction } from '@/lib/actions/appointment-actions';
 
 const SPECIES = ['DOG', 'CAT'] as const;
@@ -19,7 +19,7 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-interface Props { vetId: string; vetName: string; availability: IAvailability[]; }
+interface Props { vetId: string; vetName: string; availability: IAvailabilitySlot[]; }
 
 export function BookAppointmentForm({ vetId, vetName, availability }: Props) {
   const router = useRouter();

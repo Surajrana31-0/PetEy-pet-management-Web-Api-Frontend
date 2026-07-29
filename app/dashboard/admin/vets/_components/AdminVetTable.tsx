@@ -12,9 +12,11 @@ export function AdminVetTable({ initialVets }: { initialVets: any[] }) {
   const [isPending, startTransition] = useTransition();
 
   const handleToggleActive = (vetId: string) => {
+    const vet = vets.find((v) => v._id === vetId);
+    if (!vet) return;
     startTransition(async () => {
       try {
-        await toggleVetActive(vetId);
+        await toggleVetActive(vetId, !vet.isActive);
         toast.success('Vet status updated.');
         setVets((prev) =>
           prev.map((v) => (v._id === vetId ? { ...v, isActive: !v.isActive } : v))
