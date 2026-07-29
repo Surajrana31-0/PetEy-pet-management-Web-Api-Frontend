@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -64,187 +62,165 @@ export function AdminPetsTable({ initialPets }: { initialPets: Pet[] }) {
       setSortAsc(!sortAsc);
     } else {
       setSortField(field);
-      setSortAsc(true);
+      setSortAsc(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    const formData = new FormData();
-    formData.set('id', id);
-    const result = await deletePetAction(formData);
-    if (result.success) {
-      toast.success('Pet deleted successfully');
-      router.refresh();
-    } else {
-      toast.error(result.message || 'Failed to delete pet');
-    }
-  };
-
-  return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+  if (pets.length === 0) {
+    return (
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Pet Management</h1>
           <p className="mt-1 text-sm text-muted-foreground">Create, edit, and manage pet listings.</p>
         </div>
-        <Button asChild className="gradient-warm text-white">
-          <Link href="/dashboard/admin/pets/new">
-            <Plus className="mr-2 h-4 w-4" /> Add New Pet
-          </Link>
-        </Button>
-      </div>
-
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search pets..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as PetStatus | 'ALL')}>
-          <SelectTrigger className="w-full sm:w-44">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Status</SelectItem>
-            <SelectItem value="AVAILABLE">Available</SelectItem>
-            <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="ADOPTED">Adopted</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {filtered.length === 0 && (
         <EmptyState
           icon={PawPrint}
-          title={search || statusFilter !== 'ALL' ? 'No pets match your filters' : 'No pets yet'}
-          description={search || statusFilter !== 'ALL' ? 'Try adjusting your search or filters.' : 'Add your first pet listing to get started.'}
+          title="No pets listed yet"
+          description="Create your first pet listing to get started."
           action={
-            !search && statusFilter === 'ALL' ? (
-              <Button asChild className="gradient-warm text-white">
-                <Link href="/dashboard/admin/pets/new"><Plus className="mr-2 h-4 w-4" /> Add Pet</Link>
-              </Button>
-            ) : undefined
+            <Button asChild className="gradient-warm text-white">
+              <Link href="/dashboard/admin/pets/new"><Plus className="mr-2 h-4 w-4" /> Add New Pet</Link>
+            </Button>
           }
         />
-      )}
+      </div>
+    );
+  }
 
-      {filtered.length > 0 && (
-        <>
-          <div className="hidden overflow-hidden rounded-2xl border border-border shadow-card lg:block">
-            <table className="w-full">
-              <thead className="border-b border-border bg-muted/50">
+  return (
+    <div className="mx-auto max-w-7xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Pet Management</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Create, edit, and manage pet listings.</p>
+      </div>
+
+      <Card className="overflow-hidden border-border/60 shadow-card">
+        <CardContent className="p-0">
+          <div className="flex flex-col gap-4 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-1 items-center gap-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or breed..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-9 border-0 bg-muted/50 focus-visible:ring-1"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as PetStatus | 'ALL')}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Status</SelectItem>
+                  <SelectItem value="AVAILABLE">Available</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="ADOPTED">Adopted</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button asChild className="gradient-warm text-white">
+                <Link href="/dashboard/admin/pets/new">
+                  <Plus className="mr-2 h-4 w-4" /> Add New Pet
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-border bg-muted/30">
                 <tr>
-                  <th className="px-4 py-3 text-left">
-                    <button onClick={() => toggleSort('name')} className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                    <button className="flex items-center gap-1 hover:text-foreground" onClick={() => toggleSort('name')}>
                       Pet <ArrowUpDown className="h-3 w-3" />
                     </button>
                   </th>
-                  <th className="px-4 py-3 text-left">
-                    <button onClick={() => toggleSort('breed')} className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Species</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                    <button className="flex items-center gap-1 hover:text-foreground" onClick={() => toggleSort('breed')}>
                       Breed <ArrowUpDown className="h-3 w-3" />
                     </button>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Species</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Age</th>
-                  <th className="px-4 py-3 text-left">
-                    <button onClick={() => toggleSort('status')} className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                    <button className="flex items-center gap-1 hover:text-foreground" onClick={() => toggleSort('status')}>
                       Status <ArrowUpDown className="h-3 w-3" />
                     </button>
                   </th>
-                  <th className="px-4 py-3 text-left">
-                    <button onClick={() => toggleSort('createdAt')} className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                    <button className="flex items-center gap-1 hover:text-foreground" onClick={() => toggleSort('createdAt')}>
                       Created <ArrowUpDown className="h-3 w-3" />
                     </button>
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">Actions</th>
+                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
-                {filtered.map((pet) => (
-                  <tr key={pet._id} className="transition-colors hover:bg-muted/30">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{pet.emoji || (pet.species === 'DOG' ? '🐶' : '🐱')}</span>
-                        <span className="font-medium">{pet.name}</span>
-                      </div>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+                      No pets match your filters.
                     </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{pet.breed}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{pet.species}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{pet.age}</td>
-                    <td className="px-4 py-3"><StatusBadge status={pet.status} /></td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {new Date(pet.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="View pet">
-                          <Link href={`/pets/${pet._id}`}><Eye className="h-4 w-4" /></Link>
-                        </Button>
-                        <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Edit pet">
-                          <Link href={`/dashboard/admin/pets/${pet._id}/edit`}><Pencil className="h-4 w-4" /></Link>
-                        </Button>
-                        <ConfirmDialog
-                          trigger={
+                  </tr>
+                ) : (
+                  filtered.map((pet) => (
+                    <tr key={pet._id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{pet.emoji || (pet.species === 'DOG' ? '🐶' : '🐱')}</span>
+                          <div>
+                            <p className="font-medium">{pet.name}</p>
+                            <p className="text-xs text-muted-foreground">{pet.age} years old</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">{pet.species}</td>
+                      <td className="px-4 py-3">{pet.breed}</td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={pet.status} />
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {new Date(pet.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="View pet">
+                            <Link href={`/dashboard/admin/pets/${pet._id}`}><Eye className="h-4 w-4" /></Link>
+                          </Button>
+                          <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Edit pet">
+                            <Link href={`/dashboard/admin/pets/${pet._id}/edit`}><Pencil className="h-4 w-4" /></Link>
+                          </Button>
+                          <ConfirmDialog
+                            title="Delete Pet"
+                            description={`Are you sure you want to delete ${pet.name}? This action cannot be undone.`}
+                            onConfirm={async () => {
+                              const result = await deletePetAction(pet._id);
+                              if (result.success) {
+                                toast.success('Pet deleted successfully');
+                                router.refresh();
+                              } else {
+                                toast.error(result.message || 'Failed to delete pet');
+                              }
+                            }}
+                          >
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" aria-label="Delete pet">
                               <Trash2 className="h-4 w-4" />
                             </Button>
-                          }
-                          title={`Delete ${pet.name}?`}
-                          description="This action cannot be undone. The pet listing will be permanently removed."
-                          confirmLabel="Delete"
-                          onConfirm={() => handleDelete(pet._id)}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          </ConfirmDialog>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="space-y-3 lg:hidden">
-            {filtered.map((pet) => (
-              <Card key={pet._id} className="border-border/60 shadow-card">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">{pet.emoji || (pet.species === 'DOG' ? '🐶' : '🐱')}</span>
-                      <div>
-                        <h3 className="font-semibold">{pet.name}</h3>
-                        <p className="text-sm text-muted-foreground">{pet.breed} · {pet.age}</p>
-                        <div className="mt-2"><StatusBadge status={pet.status} /></div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="View">
-                        <Link href={`/pets/${pet._id}`}><Eye className="h-4 w-4" /></Link>
-                      </Button>
-                      <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Edit">
-                        <Link href={`/dashboard/admin/pets/${pet._id}/edit`}><Pencil className="h-4 w-4" /></Link>
-                      </Button>
-                      <ConfirmDialog
-                        trigger={
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label="Delete">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        }
-                        title={`Delete ${pet.name}?`}
-                        description="This action cannot be undone."
-                        confirmLabel="Delete"
-                        onConfirm={() => handleDelete(pet._id)}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </>
+      {filtered.length > 0 && !search && statusFilter === 'ALL' && (
+        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+          <p>Showing {filtered.length} pets</p>
+        </div>
       )}
     </div>
   );
