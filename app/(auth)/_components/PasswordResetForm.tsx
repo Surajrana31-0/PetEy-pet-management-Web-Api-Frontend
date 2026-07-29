@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
@@ -12,12 +12,10 @@ import { resetPasswordSchema, type ResetPasswordData } from '@/lib/auth/schemas'
 import { handleResetPassword } from '@/lib/actions/auth-action';
 import { PasswordField } from '@/components/auth/password-field';
 
-interface ResetPasswordFormProps {
-  token?: string;
-}
-
-export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
+export default function PasswordResetForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token') || '';
   const [isSuccess, setIsSuccess] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -44,7 +42,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         <p className="auth-success-modern__message">
           This password reset link is missing or expired. Request a new one.
         </p>
-        <Link href="/forget-password" className="mt-6 inline-block">
+        <Link href="/forgot-password" className="mt-6 inline-block">
           <Button variant="brand" className="auth-submit-modern">
             Request new link
           </Button>
@@ -151,7 +149,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Back to sign in
         </Link>
-        <Link href="/forget-password" className="font-medium text-brand hover:text-brand-hover">
+        <Link href="/forgot-password" className="font-medium text-brand hover:text-brand-hover">
           Request another email
         </Link>
       </div>

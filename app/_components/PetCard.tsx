@@ -25,7 +25,7 @@ export default function PetCard({ pet }: PetCardProps) {
         }}
       >
         <span style={{ fontSize: 48, lineHeight: 1 }}>{pet.emoji}</span>
-        <span className={`dash-status ${statusClass(pet.status)}`}>{pet.status}</span>
+        <span className={`dash-status ${statusClass(pet.status ?? PetStatus.AVAILABLE)}`}>{pet.status}</span>
       </div>
       <div style={{ padding: '20px 24px 24px' }}>
         <h3

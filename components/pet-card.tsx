@@ -52,7 +52,7 @@ export function PetCard({ pet, className }: PetCardProps) {
         </div>
       </div>
 
-      {/* Content */
+      {/* Content */}
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold leading-tight transition-colors group-hover:text-primary">
