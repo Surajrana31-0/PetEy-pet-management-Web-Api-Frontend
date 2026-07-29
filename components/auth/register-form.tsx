@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Mail, Lock, User, Loader2, Check } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, UserCheck, Loader2, Check } from 'lucide-react';
 import { registerSchema, type RegisterValues } from '@/lib/schemas/auth-schema';
 import { registerAction, type AuthFormState } from '@/lib/actions/auth-action';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ const PASSWORD_RULES = [
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [password, setPassword] = useState('');
@@ -30,7 +31,7 @@ export function RegisterForm() {
     formState: { errors },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
+    defaultValues: { fullName: '', username: '', email: '', password: '', confirmPassword: '' },
   });
 
   const onSubmit = async (data: RegisterValues) => {
@@ -39,6 +40,7 @@ export function RegisterForm() {
 
     const formData = new FormData();
     formData.set('fullName', data.fullName);
+    formData.set('username', data.username);
     formData.set('email', data.email);
     formData.set('password', data.password);
 
@@ -57,6 +59,7 @@ export function RegisterForm() {
         </div>
       )}
 
+      {/* Full Name */}
       <div className="space-y-2">
         <Label htmlFor="fullName">Full Name</Label>
         <div className="relative">
@@ -74,6 +77,29 @@ export function RegisterForm() {
         {errors.fullName && <p className="text-xs text-destructive">{errors.fullName.message}</p>}
       </div>
 
+      {/* Username */}
+      <div className="space-y-2">
+        <Label htmlFor="username">Username</Label>
+        <div className="relative">
+          <UserCheck className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            id="username"
+            type="text"
+            placeholder="your.username"
+            className="pl-10"
+            autoComplete="username"
+            aria-invalid={!!errors.username}
+            {...register('username')}
+          />
+        </div>
+        {errors.username ? (
+          <p className="text-xs text-destructive">{errors.username.message}</p>
+        ) : (
+          <p className="text-xs text-muted-foreground">Letters, numbers, dots, hyphens, and underscores only.</p>
+        )}
+      </div>
+
+      {/* Email */}
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <div className="relative">
@@ -91,6 +117,7 @@ export function RegisterForm() {
         {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
       </div>
 
+      {/* Password */}
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
         <div className="relative">
@@ -137,26 +164,35 @@ export function RegisterForm() {
         {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
       </div>
 
+      {/* Confirm Password */}
       <div className="space-y-2">
         <Label htmlFor="confirmPassword">Confirm Password</Label>
         <div className="relative">
           <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             id="confirmPassword"
-            type={showPassword ? 'text' : 'password'}
+            type={showConfirm ? 'text' : 'password'}
             placeholder="Re-enter your password"
-            className="pl-10"
+            className="pl-10 pr-10"
             autoComplete="new-password"
             aria-invalid={!!errors.confirmPassword}
             {...register('confirmPassword')}
           />
+          <button
+            type="button"
+            onClick={() => setShowConfirm(!showConfirm)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary"
+            aria-label={showConfirm ? 'Hide password' : 'Show password'}
+          >
+            {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
         </div>
         {errors.confirmPassword && (
           <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
         )}
       </div>
 
-      <Button type="submit" disabled={pending} className="w-full gradient-warm text-white">
+      <Button type="submit" disabled={pending} className="w-full gradient-warm text-white shadow-soft hover:shadow-glow">
         {pending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account…
