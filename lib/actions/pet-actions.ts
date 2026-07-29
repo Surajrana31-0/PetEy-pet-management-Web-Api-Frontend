@@ -7,6 +7,7 @@ import {
   updatePet as updatePetApi,
   deletePet as deletePetApi,
 } from '@/lib/api/admin/pets';
+import { prepareServerRequest } from '@/lib/auth/server-request';
 import type { PetStatus, PetSpecies } from '@/lib/types';
 
 export interface PetActionResponse {
@@ -28,6 +29,8 @@ export async function createPetAction(formData: FormData): Promise<PetActionResp
     return { success: false, message: 'Description must be at least 10 characters.' };
   }
 
+  await prepareServerRequest();
+
   try {
     const res = await createPetApi(formData);
     if (!res.success) {
@@ -46,6 +49,8 @@ export async function createPetAction(formData: FormData): Promise<PetActionResp
 
 export async function updatePetAction(id: string, formData: FormData): Promise<PetActionResponse> {
   if (!id) return { success: false, message: 'Pet ID is missing.' };
+
+  await prepareServerRequest();
 
   try {
     const res = await updatePetApi(id, formData);
@@ -68,6 +73,8 @@ export async function deletePetAction(formData: FormData): Promise<PetActionResp
   const id = formData.get('id')?.toString();
   if (!id) return { success: false, message: 'Pet ID is missing.' };
 
+  await prepareServerRequest();
+
   try {
     await deletePetApi(id);
   } catch (error) {
@@ -83,6 +90,8 @@ export async function deletePetAction(formData: FormData): Promise<PetActionResp
 
 export async function updatePetStatusAction(id: string, status: PetStatus | string): Promise<PetActionResponse> {
   if (!id) return { success: false, message: 'Pet ID is missing.' };
+
+  await prepareServerRequest();
 
   try {
     const { updatePetStatus } = await import('@/lib/api/admin/pets');

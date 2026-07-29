@@ -1,25 +1,30 @@
-'use client';
-
-import { use } from 'react';
-import useSWR from 'swr';
+import { requireAdminRole } from '@/lib/auth/guards';
+import { getAdminPetById } from '@/lib/api/admin/pets';
+import PetForm from '@/app/_components/PetForm';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import PetForm from '@/app/_components/PetForm';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/skeletons';
 import { ErrorState } from '@/components/error-state';
-import { petsApi } from '@/lib/api/pets';
 import type { IPet } from '@/lib/types/pet';
 
-const fetcher = async (id: string) => {
-  const res = await petsApi.getById(id);
-  if (!res.success) throw new Error(res.message || 'Failed to load pet');
-  return res.data as IPet;
-};
+export default async function EditPetPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  await requireAdminRole();
 
-export default function EditPetPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const { data: pet, error, isLoading } = useSWR(id, fetcher);
+  let pet: IPet | null = null;
+  let error: string | null = null;
+
+  try {
+    const res = await getAdminPetById(id);
+    if (res.success && res.data) {
+      pet = res.data as IPet;
+    } else {
+      error = res.message || 'Failed to load pet';
+    }
+  } catch (err) {
+    error = err instanceof Error ? err.message : 'Failed to load pet';
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -34,19 +39,8 @@ export default function EditPetPage({ params }: { params: Promise<{ id: string }
         <p className="mt-1 text-sm text-muted-foreground">Update pet listing information.</p>
       </div>
 
-      {isLoading && (
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-      )}
-
-      {error && !isLoading && <ErrorState message={error.message} />}
-
-      {!isLoading && !error && pet && (
-        <PetForm mode="edit" pet={pet} />
-      )}
+      {error && !pet && <ErrorState message={error} />}
+      {pet && <PetForm mode="edit" pet={pet} />}
     </div>
   );
 }
