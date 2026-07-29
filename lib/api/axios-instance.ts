@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from './endpoints';
 
 export const api = axios.create({
@@ -32,6 +32,35 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retried?: boolean };
+    const status = error.response?.status;
+
+    if (status === 401 && !originalRequest._retried) {
+      originalRequest._retried = true;
+      try {
+        const refreshRes = await axios.post(
+          `${API_BASE_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
+        );
+        const newAccessToken = refreshRes.data?.data?.accessToken;
+        if (newAccessToken) {
+          setCachedToken(newAccessToken);
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return api.request(originalRequest);
+        }
+      } catch {
+        // refresh failed — fall through to reject
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default api;
 

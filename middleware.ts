@@ -11,16 +11,25 @@ function isPublicPath(pathname: string): boolean {
   });
 }
 
-function getTokenFromCookies(req: NextRequest): string | null {
+function getRoleFromCookies(req: NextRequest): string | null {
   const token = req.cookies.get('accessToken')?.value;
-  if (!token) return null;
-  const decoded = decodeJWT(token);
-  return decoded?.role || null;
+  if (token) {
+    const decoded = decodeJWT(token);
+    return decoded?.role || null;
+  }
+  const userData = req.cookies.get('userData')?.value;
+  if (userData) {
+    try {
+      const parsed = JSON.parse(userData);
+      return parsed?.role || null;
+    } catch { /* ignore */ }
+  }
+  return null;
 }
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const role = getTokenFromCookies(req);
+  const role = getRoleFromCookies(req);
 
   if (pathname === '/dashboard') {
     const target = role === 'ADMIN' ? '/dashboard/admin' : '/dashboard/user';

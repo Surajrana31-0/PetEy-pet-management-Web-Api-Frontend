@@ -16,11 +16,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 
 const fetcher = async () => {
-  const res = await petsApi.list();
+  const res = await petsApi.list({ limit: 100 });
   if (!res.success) throw new Error(res.message || 'Failed to load pets');
   const data = res.data;
+  if (!data) return [];
   if (Array.isArray(data)) return data;
-  return (data as { pets: Pet[] }).pets;
+  if (Array.isArray((data as { pets?: Pet[] }).pets)) return (data as { pets: Pet[] }).pets;
+  return [];
 };
 
 type SortOption = 'newest' | 'name' | 'breed';
@@ -44,7 +46,7 @@ export default function BrowsePetsPage() {
     if (statusFilter !== 'ALL') result = result.filter((p) => p.status === statusFilter);
     switch (sortBy) {
       case 'name': result.sort((a, b) => a.name.localeCompare(b.name)); break;
-      case 'breed': result.sort((a, b) => a.breed.localeCompare(b.breed)); break;
+      case 'breed': result.sort((a, b) => a.breed.localeCompare(b.name)); break;
       default: result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
     return result;
