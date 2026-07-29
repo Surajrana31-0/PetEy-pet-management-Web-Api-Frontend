@@ -20,11 +20,29 @@ const AuthContext = createContext<AuthContextValue>({
   clearUser: () => {},
 });
 
+function getCookieValue(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
+    const token = getCookieValue('accessToken');
+    if (!token) {
+      const userData = getCookieValue('userData');
+      if (userData) {
+        try { setUser(JSON.parse(userData)); } catch { setUser(null); }
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await axiosInstance.get(ENDPOINTS.AUTH.ME);
       if (response.data?.success) {
@@ -33,7 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
       }
     } catch {
-      setUser(null);
+      const userData = getCookieValue('userData');
+      if (userData) {
+        try { setUser(JSON.parse(userData)); } catch { setUser(null); }
+      } else {
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }

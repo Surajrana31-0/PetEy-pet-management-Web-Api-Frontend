@@ -1,25 +1,67 @@
 import { requireUserRole } from '@/lib/auth/guards';
+import { getUserDashboardData } from '@/lib/actions/dashboard-actions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, FileText, Sparkles, MessageSquare, PawPrint, ArrowRight, Clock } from 'lucide-react';
+import { Heart, FileText, Sparkles, MessageSquare, PawPrint, ArrowRight, Clock, Bell, Check } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import type { INotification } from '@/lib/types';
 
-const RECENT_ACTIVITIES = [
-  { icon: Heart, label: 'Added Max to favorites', time: '2 hours ago', color: 'text-destructive' },
-  { icon: FileText, label: 'Submitted adoption application for Luna', time: '1 day ago', color: 'text-warning' },
-  { icon: Sparkles, label: 'AI recommended 3 new pets', time: '2 days ago', color: 'text-primary' },
-  { icon: MessageSquare, label: 'Chat with AI assistant about breeds', time: '3 days ago', color: 'text-accent' },
-];
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
-const QUICK_STATS = [
-  { label: 'Favorite Pets', value: '5', icon: Heart, color: 'bg-destructive/10 text-destructive' },
-  { label: 'Applications', value: '2', icon: FileText, color: 'bg-warning/10 text-warning' },
-  { label: 'AI Matches', value: '8', icon: Sparkles, color: 'bg-primary/10 text-primary' },
-  { label: 'Chat Sessions', value: '12', icon: MessageSquare, color: 'bg-accent/10 text-accent' },
-];
+function getNotificationIcon(type: string) {
+  switch (type) {
+    case 'adoption_approved':
+    case 'adoption_completed':
+      return Check;
+    case 'adoption_rejected':
+    case 'user_suspended':
+      return Bell;
+    case 'blog_published':
+      return FileText;
+    case 'pet_created':
+      return PawPrint;
+    default:
+      return Bell;
+  }
+}
 
 export default async function UserDashboardPage() {
   const user = await requireUserRole();
+
+  let notifications: INotification[] = [];
+  let unreadCount = 0;
+  let myApplications: unknown[] = [];
+  let errorMsg: string | null = null;
+
+  try {
+    const res = await getUserDashboardData();
+    if (res.success) {
+      notifications = res.notifications ?? [];
+      unreadCount = res.unreadCount ?? 0;
+      myApplications = res.myApplications ?? [];
+    } else {
+      errorMsg = res.message;
+    }
+  } catch {
+    errorMsg = 'Unable to load dashboard data';
+  }
+
+  const QUICK_STATS = [
+    { label: 'Unread Notifications', value: unreadCount, icon: Bell, color: 'bg-primary/10 text-primary' },
+    { label: 'My Applications', value: myApplications.length, icon: FileText, color: 'bg-warning/10 text-warning' },
+    { label: 'Favorite Pets', value: user.favorites?.length ?? 0, icon: Heart, color: 'bg-destructive/10 text-destructive' },
+    { label: 'AI Chat', value: 0, icon: MessageSquare, color: 'bg-accent/10 text-accent' },
+  ];
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -31,6 +73,12 @@ export default async function UserDashboardPage() {
           Here&apos;s what&apos;s happening with your adoption journey.
         </p>
       </div>
+
+      {errorMsg && (
+        <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+          {errorMsg}. Showing available data.
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {QUICK_STATS.map((stat) => {
@@ -54,27 +102,49 @@ export default async function UserDashboardPage() {
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2 border-border/60 shadow-card">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" /> Recent Activity
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-primary" /> Notifications
+              </span>
+              {unreadCount > 0 && (
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                  {unreadCount} unread
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {RECENT_ACTIVITIES.map((activity, i) => {
-                const Icon = activity.icon;
-                return (
-                  <div key={i} className="flex items-start gap-3">
-                    <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted ${activity.color}`}>
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{activity.label}</p>
-                      <p className="text-xs text-muted-foreground">{activity.time}</p>
+            {notifications.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No notifications yet. You&apos;ll see updates about your applications here.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {notifications.map((notif) => {
+                  const Icon = getNotificationIcon(notif.type);
+                  return (
+                    <div
+                      key={notif._id}
+                      className={`flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 ${
+                        !notif.read ? 'border-primary/30 bg-primary/5' : 'border-border/60'
+                      }`}
+                    >
+                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted">
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{notif.title}</p>
+                        <p className="text-xs text-muted-foreground">{notif.message}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{timeAgo(notif.createdAt)}</p>
+                      </div>
+                      {!notif.read && (
+                        <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
+                      )}
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 
