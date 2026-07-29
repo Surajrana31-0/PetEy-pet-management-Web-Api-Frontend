@@ -1,6 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from './endpoints';
-import type { ApiErrorResponse } from '@/lib/types';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,28 +8,41 @@ export const api = axios.create({
   timeout: 15000,
 });
 
+let cachedToken: string | null = null;
+
+export function setCachedToken(token: string | null): void {
+  cachedToken = token;
+}
+
+export function clearCachedToken(): void {
+  cachedToken = null;
+}
+
+api.interceptors.request.use((config) => {
+  if (cachedToken) {
+    config.headers.Authorization = `Bearer ${cachedToken}`;
+  }
+  return config;
+});
+
+export default api;
+
 export interface ApiResult<T> {
   data: T | null;
   error: string | null;
   status: number;
 }
 
-export async function apiRequest<T>(
-  config: AxiosRequestConfig
-): Promise<ApiResult<T>> {
+export async function apiRequest<T>(config: AxiosRequestConfig): Promise<ApiResult<T>> {
   try {
     const res = await api.request<T>(config);
     return { data: res.data, error: null, status: res.status };
   } catch (err) {
-    const axiosErr = err as AxiosError<ApiErrorResponse>;
+    const axiosErr = err as AxiosError<{ message?: string }>;
     const message =
       axiosErr.response?.data?.message ||
       axiosErr.message ||
       'Something went wrong. Please try again.';
     return { data: null, error: message, status: axiosErr.response?.status || 500 };
   }
-}
-
-export function isApiSuccess<T>(r: ApiResult<T>): r is ApiResult<T> & { data: T; error: null } {
-  return r.data !== null && r.error === null;
 }

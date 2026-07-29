@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8088/api';
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8088/api/v1';
 
 export const ENDPOINTS = {
   AUTH: {
@@ -7,9 +7,105 @@ export const ENDPOINTS = {
     LOGIN: '/auth/login',
     LOGOUT: '/auth/logout',
     ME: '/auth/me',
+    UPDATE: '/auth/update',
+    PASSWORD: '/auth/password',
+    REFRESH_TOKEN: '/auth/refresh-token',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    RESET_PASSWORD: '/auth/reset-password',
+    VERIFY_EMAIL: '/auth/verify-email',
   },
   PETS: {
     BASE: '/pets',
     BY_ID: (id: string) => `/pets/${id}`,
+    SEARCH: '/pets/search',
+    BY_STATUS: (status: string) => `/pets/status/${status}`,
+    BY_SPECIES: (species: string) => `/pets/species/${species}`,
+    BY_BREED: (breed: string) => `/pets/breed/${encodeURIComponent(breed)}`,
+    BY_AGE: (age: string) => `/pets/age/${age}`,
+    CATEGORIES: '/pets/categories',
+  },
+  ADOPTIONS: {
+    CREATE: '/adoptions',
+    MY: '/adoptions/my',
+    GET_ONE: (id: string) => `/adoptions/${id}`,
+    CANCEL: (id: string) => `/adoptions/${id}/cancel`,
+    APPROVE: (id: string) => `/adoptions/${id}/approve`,
+    REJECT: (id: string) => `/adoptions/${id}/reject`,
+    COMPLETE: (id: string) => `/adoptions/${id}/complete`,
+    BY_USER: (userId: string) => `/adoptions/user/${userId}`,
+    BY_PET: (petId: string) => `/adoptions/pet/${petId}`,
+    STATISTICS: '/adoptions/statistics',
+    PENDING: '/adoptions/pending',
+  },
+  AI: {
+    GENERATE_DESCRIPTION: '/ai/generate-description',
+    MATCH: '/ai/match',
+    ANALYZE_COMPATIBILITY: '/ai/analyze-compatibility',
+    CHAT: '/ai/chat',
+    CHAT_HISTORY: '/ai/chat-history',
+    RECOMMENDATIONS: '/ai/recommendations',
+  },
+  BLOGS: {
+    BASE: '/blogs',
+    MY: '/blogs/my',
+    BY_ID: (id: string) => `/blogs/${id}`,
+  },
+  VETS: {
+    GET: '/vet',
+    GET_ONE: (id: string) => `/vet/${id}`,
+  },
+  APPOINTMENTS: {
+    CREATE: '/appointments',
+    MY: '/appointments/my',
+    GET_ONE: (id: string) => `/appointments/${id}`,
+    CANCEL: (id: string) => `/appointments/${id}/cancel`,
+  },
+  FILE: {
+    UPLOAD: '/file/upload',
+  },
+  ADMIN: {
+    USERS: {
+      GET: '/admin/users',
+      GET_ONE: (id: string) => `/admin/users/${id}`,
+      CREATE: '/admin/users',
+      UPDATE: (id: string) => `/admin/users/${id}`,
+      DELETE: (id: string) => `/admin/users/${id}`,
+      UPDATE_ROLE: (id: string) => `/admin/users/${id}/role`,
+      STATS: '/admin/users/stats',
+    },
+    PETS: {
+      GET: '/admin/pets',
+      GET_ONE: (id: string) => `/admin/pets/${id}`,
+      CREATE: '/admin/pets',
+      UPDATE: (id: string) => `/admin/pets/${id}`,
+      DELETE: (id: string) => `/admin/pets/${id}`,
+      UPDATE_STATUS: (id: string) => `/admin/pets/${id}/status`,
+      STATS: '/admin/pets/stats/dashboard',
+    },
+    BLOGS: {
+      GET: '/admin/blogs',
+      GET_ONE: (id: string) => `/admin/blogs/${id}`,
+      CREATE: '/admin/blogs',
+      UPDATE: (id: string) => `/admin/blogs/${id}`,
+      DELETE: (id: string) => `/admin/blogs/${id}`,
+      UPDATE_STATUS: (id: string) => `/admin/blogs/${id}/status`,
+      STATS: '/admin/blogs/stats/dashboard',
+    },
+    VETS: {
+      GET: '/admin/vets',
+      GET_ONE: (id: string) => `/admin/vets/${id}`,
+      CREATE: '/admin/vets',
+      UPDATE: (id: string) => `/admin/vets/${id}`,
+      DELETE: (id: string) => `/admin/vets/${id}`,
+      TOGGLE_ACTIVE: (id: string) => `/admin/vets/${id}/toggle-active`,
+      STATS: '/admin/vets/statistics',
+    },
+    APPOINTMENTS: {
+      GET: '/admin/appointments',
+      UPDATE_STATUS: (id: string) => `/admin/appointments/${id}/status`,
+      DELETE: (id: string) => `/admin/appointments/${id}`,
+      RECENT: '/admin/appointments/recent',
+      STATS: '/admin/appointments/statistics',
+    },
   },
 } as const;
