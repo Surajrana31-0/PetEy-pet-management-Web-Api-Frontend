@@ -85,7 +85,7 @@ export async function deletePetAction(formData: FormData): Promise<PetActionResp
   }
 
   revalidatePath('/dashboard/admin/pets');
-  redirect('/dashboard/admin/pets');
+  return { success: true };
 }
 
 export async function updatePetStatusAction(id: string, status: PetStatus | string): Promise<PetActionResponse> {
