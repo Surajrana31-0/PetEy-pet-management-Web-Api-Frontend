@@ -71,9 +71,13 @@ export function AdminPetsTable({ initialPets }: { initialPets: Pet[] }) {
   const handleDelete = async (id: string) => {
     const formData = new FormData();
     formData.set('id', id);
-    await deletePetAction(formData);
-    toast.success('Pet deleted successfully');
-    router.refresh();
+    const result = await deletePetAction(formData);
+    if (result.success) {
+      toast.success('Pet deleted successfully');
+      router.refresh();
+    } else {
+      toast.error(result.message || 'Failed to delete pet');
+    }
   };
 
   return (
