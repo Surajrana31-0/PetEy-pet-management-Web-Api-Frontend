@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { requireUserRole } from '@/lib/auth/guards';
 import { getUserDashboardData } from '@/lib/actions/dashboard-actions';
 import type { INotification } from '@/lib/types';

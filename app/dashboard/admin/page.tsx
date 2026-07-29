@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { requireAdminRole } from '@/lib/auth/guards';
 import { getAdminDashboardData } from '@/lib/actions/dashboard-actions';
 import type { IAdminDashboardData } from '@/lib/types';
