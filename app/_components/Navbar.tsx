@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { getDashboardPathForRole } from '@/lib/auth/roles';
 import type { IUser } from '@/lib/types/auth';
 import { UserRole } from '@/lib/types/auth';
-import { logoutUser } from '@/lib/actions/auth-action';
+import { logoutAction } from '@/lib/actions/auth-action';
 import { Avatar } from '@/components/ui/avatar';
 import { LayoutDashboard, Compass, PawPrint, LogOut, ArrowLeft, User, Settings } from 'lucide-react';
 
@@ -19,7 +19,6 @@ export default function Navbar({ user, activePath = '' }: NavbarProps) {
     <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
               <span className="text-lg">🐾</span>
@@ -29,7 +28,6 @@ export default function Navbar({ user, activePath = '' }: NavbarProps) {
             </span>
           </Link>
 
-          {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-1">
             <Link
               href="/"
@@ -99,7 +97,6 @@ export default function Navbar({ user, activePath = '' }: NavbarProps) {
           </nav>
         </div>
 
-        {/* User Info & Actions */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-800 pl-4">
             <Avatar src={user.profileImage} name={user.fullName} size="sm" />
@@ -118,7 +115,7 @@ export default function Navbar({ user, activePath = '' }: NavbarProps) {
               </span>
             </div>
 
-            <form action={logoutUser} method="POST">
+            <form action={logoutAction} method="POST">
               <button
                 type="submit"
                 className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"

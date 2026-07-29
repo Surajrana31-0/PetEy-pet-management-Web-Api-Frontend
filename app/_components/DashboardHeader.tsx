@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { getDashboardPathForRole } from '@/lib/auth/roles';
 import type { IUser } from '@/lib/types/auth';
 import { UserRole } from '@/lib/types/auth';
-import { logoutUser } from '@/lib/actions/auth-action';
+import { logoutAction } from '@/lib/actions/auth-action';
 import { LogOut, Bell } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -68,7 +68,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
             </div>
           </div>
 
-          <form action={logoutUser} method="POST">
+          <form action={logoutAction} method="POST">
             <button type="submit" className="dash-header-icon-btn dash-header-logout" title="Logout">
               <LogOut className="w-5 h-5" />
             </button>
