@@ -1,17 +1,8 @@
 import { requireAdminRole } from '@/lib/auth/guards';
 import { getAdminDashboardData } from '@/lib/actions/dashboard-actions';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PawPrint, Check, Clock, Users, TrendingUp, Sparkles, ArrowRight, FileText, Activity, Blog } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import type { IAdminDashboardData } from '@/lib/types';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -22,11 +13,11 @@ function timeAgo(dateStr: string): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
-  return formatDate(dateStr);
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 export default async function AdminDashboardPage() {
-  const user = await requireAdminRole();
+  await requireAdminRole();
 
   let dashboard: IAdminDashboardData | null = null;
   let errorMsg: string | null = null;
@@ -48,167 +39,115 @@ export default async function AdminDashboardPage() {
   const monthlyReports = dashboard?.monthlyReports;
 
   const stats = [
-    { label: 'Total Pets', value: overview?.pets.total ?? 0, icon: PawPrint, color: 'bg-primary/10 text-primary' },
-    { label: 'Available', value: overview?.pets.available ?? 0, icon: Check, color: 'bg-success/10 text-success' },
-    { label: 'Pending Adoptions', value: overview?.adoptions.pending ?? 0, icon: Clock, color: 'bg-warning/10 text-warning' },
-    { label: 'Completed', value: overview?.pets.adopted ?? 0, icon: TrendingUp, color: 'bg-accent/10 text-accent' },
-    { label: 'Total Users', value: overview?.users.total ?? 0, icon: Users, color: 'bg-primary/10 text-primary' },
-    { label: 'Total Blogs', value: overview?.blogs.total ?? 0, icon: Blog, color: 'bg-accent/10 text-accent' },
-  ];
-
-  const QUICK_ACTIONS = [
-    { label: 'Add New Pet', href: '/dashboard/admin/pets/new', icon: PawPrint },
-    { label: 'View Applications', href: '/dashboard/admin/applications', icon: FileText },
-    { label: 'Analytics', href: '/dashboard/admin/analytics', icon: TrendingUp },
+    { label: 'Total Pets', value: overview?.pets.total ?? 0, icon: '🐾' },
+    { label: 'Available', value: overview?.pets.available ?? 0, icon: '✅' },
+    { label: 'Pending Adoptions', value: overview?.adoptions.pending ?? 0, icon: '⏳' },
+    { label: 'Completed', value: overview?.pets.adopted ?? 0, icon: '📈' },
+    { label: 'Total Users', value: overview?.users.total ?? 0, icon: '👥' },
+    { label: 'Total Blogs', value: overview?.blogs.total ?? 0, icon: '📝' },
   ];
 
   return (
     <div className="mx-auto max-w-7xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Platform overview and recent activity.</p>
+        <p className="mt-1 text-sm text-gray-500">Platform overview and recent activity.</p>
       </div>
 
       {errorMsg && (
-        <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+        <div className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">
           {errorMsg}. Showing available data.
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.label} className="border-border/60 shadow-card transition-all hover:shadow-glow">
-              <CardContent className="p-4">
-                <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.color}`}>
-                  <Icon className="h-5 w-5" />
-                </span>
-                <div className="mt-3 text-2xl font-bold">{stat.value}</div>
-                <div className="text-xs text-muted-foreground">{stat.label}</div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {stats.map((stat) => (
+          <div key={stat.label} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-xl">
+              {stat.icon}
+            </span>
+            <div className="mt-3 text-2xl font-bold">{stat.value}</div>
+            <div className="text-xs text-gray-500">{stat.label}</div>
+          </div>
+        ))}
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 border-border/60 shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" /> Recent Activity
-              </span>
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/dashboard/admin/analytics">
-                  View all <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {recentActivities.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">No recent activity</p>
-            ) : (
-              <div className="space-y-3">
-                {recentActivities.slice(0, 8).map((activity) => (
-                  <div key={activity._id} className="flex items-center justify-between rounded-lg border border-border/60 p-3 transition-colors hover:bg-muted/50">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                      </span>
-                      <div>
-                        <div className="text-sm font-medium">{activity.description}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {activity.actorName} · {activity.module} · {timeAgo(activity.createdAt)}
-                        </div>
-                      </div>
+        <div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+            📊 Recent Activity
+          </h2>
+          {recentActivities.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-500">No recent activity</p>
+          ) : (
+            <div className="space-y-3">
+              {recentActivities.slice(0, 8).map((activity) => (
+                <div key={activity._id} className="flex items-center justify-between rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50">
+                  <div>
+                    <div className="text-sm font-medium">{activity.description}</div>
+                    <div className="text-xs text-gray-500">
+                      {activity.actorName} · {activity.module} · {timeAgo(activity.createdAt)}
                     </div>
-                    <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize">
-                      {activity.action}
-                    </span>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium capitalize">
+                    {activity.action}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-        <Card className="border-border/60 shadow-card">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {QUICK_ACTIONS.map((action) => {
-              const Icon = action.icon;
-              return (
-                <Button key={action.label} asChild variant="outline" className="w-full justify-start">
-                  <Link href={action.href}>
-                    <Icon className="mr-2 h-4 w-4" /> {action.label}
-                  </Link>
-                </Button>
-              );
-            })}
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold">Quick Actions</h2>
+          <div className="space-y-3">
+            <Link href="/dashboard/admin/pets/new" className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-left text-sm font-medium hover:bg-gray-50">
+              🐾 Add New Pet
+            </Link>
+            <Link href="/dashboard/admin/applications" className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-left text-sm font-medium hover:bg-gray-50">
+              📋 View Applications
+            </Link>
+            <Link href="/dashboard/admin/analytics" className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-left text-sm font-medium hover:bg-gray-50">
+              📈 Analytics
+            </Link>
+          </div>
+        </div>
       </div>
 
       {trends && trends.statusCounts.length > 0 && (
-        <Card className="mt-6 border-border/60 shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" /> Adoption Trends
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {trends.statusCounts.map((item) => (
-                <div key={item._id} className="rounded-lg border border-border/60 p-4 text-center">
-                  <div className="text-2xl font-bold">{item.count}</div>
-                  <div className="text-xs capitalize text-muted-foreground">{item._id}</div>
-                </div>
-              ))}
-            </div>
-            {trends.speciesAdoption.length > 0 && (
-              <div className="mt-4">
-                <h4 className="mb-2 text-sm font-medium">Completed Adoptions by Species</h4>
-                <div className="flex gap-4">
-                  {trends.speciesAdoption.map((item) => (
-                    <div key={item._id} className="rounded-lg bg-muted/50 px-4 py-2">
-                      <span className="text-lg font-bold">{item.count}</span>
-                      <span className="ml-2 text-sm text-muted-foreground">{item._id}</span>
-                    </div>
-                  ))}
-                </div>
+        <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+            📈 Adoption Trends
+          </h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {trends.statusCounts.map((item) => (
+              <div key={item._id} className="rounded-lg border border-gray-200 p-4 text-center">
+                <div className="text-2xl font-bold">{item.count}</div>
+                <div className="text-xs capitalize text-gray-500">{item._id}</div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        </div>
       )}
 
       {monthlyReports && monthlyReports.adoptions.length > 0 && (
-        <Card className="mt-6 border-border/60 shadow-card">
-          <CardHeader>
-            <CardTitle>Monthly Adoption Reports</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {monthlyReports.adoptions.map((item, i) => (
-                <div key={i} className="flex items-center justify-between rounded-lg border border-border/60 p-3">
-                  <span className="text-sm font-medium">
-                    {MONTH_NAMES[item._id.month - 1]} {item._id.year}
-                  </span>
-                  <div className="flex gap-4 text-xs">
-                    <span className="text-muted-foreground">Total: <strong className="text-foreground">{item.total}</strong></span>
-                    {item.completed !== undefined && <span className="text-success">Completed: {item.completed}</span>}
-                    {item.pending !== undefined && <span className="text-warning">Pending: {item.pending}</span>}
-                    {item.rejected !== undefined && <span className="text-destructive">Rejected: {item.rejected}</span>}
-                  </div>
+        <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold">Monthly Adoption Reports</h2>
+          <div className="space-y-2">
+            {monthlyReports.adoptions.map((item, i) => (
+              <div key={i} className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+                <span className="text-sm font-medium">
+                  {MONTH_NAMES[item._id.month - 1]} {item._id.year}
+                </span>
+                <div className="flex gap-4 text-xs">
+                  <span className="text-gray-500">Total: <strong>{item.total}</strong></span>
+                  {item.completed !== undefined && <span className="text-green-600">Completed: {item.completed}</span>}
+                  {item.pending !== undefined && <span className="text-amber-600">Pending: {item.pending}</span>}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
