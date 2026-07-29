@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { Plus, Search, PawPrint, ArrowUpDown, Eye, Pencil, Trash2 } from 'lucide-react';
-import { petsApi } from '@/lib/api/pets';
+import { getAllAdminPets } from '@/lib/api/admin/pets';
 import type { Pet, PetStatus } from '@/lib/types';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
@@ -19,11 +19,11 @@ import { deletePetAction } from '@/lib/actions/pet-actions';
 import { toast } from 'sonner';
 
 const fetcher = async () => {
-  const res = await petsApi.list();
+  const res = await getAllAdminPets({ limit: 100 });
   if (!res.success) throw new Error(res.message || 'Failed to load pets');
   const data = res.data;
-  if (Array.isArray(data)) return data;
-  return (data as { pets: Pet[] }).pets;
+  if (Array.isArray(data)) return data as Pet[];
+  return ((data as unknown) as { pets: Pet[] }).pets ?? [];
 };
 
 type SortField = 'name' | 'breed' | 'createdAt' | 'status';
