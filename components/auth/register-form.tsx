@@ -4,13 +4,9 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Mail, Lock, User, UserCheck, Loader2, AlertCircle, Check } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { registerSchema, type RegisterValues } from '@/lib/schemas/auth-schema';
 import { registerUser } from '@/lib/actions/auth-action';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
 
 const PASSWORD_RULES = [
   { test: (v: string) => v.length >= 8, label: '8+ characters' },
@@ -78,157 +74,140 @@ export function RegisterForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate method="post">
       {serverError && (
-        <div className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive animate-fade-in-down">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <div>
-            <span className="font-semibold">Registration failed</span>
-            <p className="mt-0.5 text-destructive/80">{serverError}</p>
-          </div>
+        <div className="flex items-start gap-2.5 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
+          <span className="font-semibold">Registration failed:</span>
+          <span className="text-red-800">{serverError}</span>
         </div>
       )}
 
-      {/* Full Name */}
       <div className="space-y-2">
-        <Label htmlFor="fullName">Full Name</Label>
-        <div className="relative">
-          <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="fullName"
-            type="text"
-            placeholder="John Doe"
-            className="pl-10"
-            autoComplete="name"
-            aria-invalid={!!errors.fullName}
-            {...register('fullName')}
-          />
-        </div>
-        {errors.fullName && <p className="text-xs text-destructive">{errors.fullName.message}</p>}
+        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+          Full Name
+        </label>
+        <input
+          id="fullName"
+          type="text"
+          placeholder="John Doe"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+          autoComplete="name"
+          aria-invalid={!!errors.fullName}
+          {...register('fullName')}
+        />
+        {errors.fullName && <p className="text-xs text-red-600">{errors.fullName.message}</p>}
       </div>
 
-      {/* Username */}
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
-        <div className="relative">
-          <UserCheck className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="username"
-            type="text"
-            placeholder="your.username"
-            className="pl-10"
-            autoComplete="username"
-            aria-invalid={!!errors.username}
-            {...register('username')}
-          />
-        </div>
+        <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+          Username
+        </label>
+        <input
+          id="username"
+          type="text"
+          placeholder="your.username"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+          autoComplete="username"
+          aria-invalid={!!errors.username}
+          {...register('username')}
+        />
         {errors.username ? (
-          <p className="text-xs text-destructive">{errors.username.message}</p>
+          <p className="text-xs text-red-600">{errors.username.message}</p>
         ) : (
-          <p className="text-xs text-muted-foreground">Letters, numbers, dots, hyphens, and underscores only.</p>
+          <p className="text-xs text-gray-500">Letters, numbers, dots, hyphens, and underscores only.</p>
         )}
       </div>
 
-      {/* Email */}
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <div className="relative">
-          <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            className="pl-10"
-            autoComplete="email"
-            aria-invalid={!!errors.email}
-            {...register('email')}
-          />
-        </div>
-        {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+          autoComplete="email"
+          aria-invalid={!!errors.email}
+          {...register('email')}
+        />
+        {errors.email && <p className="text-xs text-red-600">{errors.email.message}</p>}
       </div>
 
-      {/* Password */}
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <div className="relative">
-          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Create a strong password"
-            className="pl-10 pr-10"
-            autoComplete="new-password"
-            aria-invalid={!!errors.password}
-            {...register('password', {
-              onChange: (e) => setPassword(e.target.value),
-            })}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary"
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
+        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          Password
+        </label>
+        <input
+          id="password"
+          type={showPassword ? 'text' : 'password'}
+          placeholder="Create a strong password"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+          autoComplete="new-password"
+          aria-invalid={!!errors.password}
+          {...register('password', {
+            onChange: (e) => setPassword(e.target.value),
+          })}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="mt-1 text-xs text-gray-500 hover:text-orange-600"
+        >
+          {showPassword ? 'Hide password' : 'Show password'}
+        </button>
 
         {password && (
-          <div className="flex flex-wrap gap-2 pt-1 animate-fade-in">
+          <div className="flex flex-wrap gap-2 pt-1">
             {PASSWORD_RULES.map((rule) => {
               const passed = rule.test(password);
               return (
                 <span
                   key={rule.label}
                   className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
-                    passed ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground'
-                  }`}
+                    passed ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                  }`
                 >
-                  {passed && <Check className="h-3 w-3" />}
+                  {passed && '✓ '}
                   {rule.label}
                 </span>
               );
             })}
           </div>
         )}
-        {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+        {errors.password && <p className="text-xs text-red-600">{errors.password.message}</p>}
       </div>
 
-      {/* Confirm Password */}
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <div className="relative">
-          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="confirmPassword"
-            type={showConfirm ? 'text' : 'password'}
-            placeholder="Re-enter your password"
-            className="pl-10 pr-10"
-            autoComplete="new-password"
-            aria-invalid={!!errors.confirmPassword}
-            {...register('confirmPassword')}
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirm(!showConfirm)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary"
-            aria-label={showConfirm ? 'Hide password' : 'Show password'}
-          >
-            {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
+        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+          Confirm Password
+        </label>
+        <input
+          id="confirmPassword"
+          type={showConfirm ? 'text' : 'password'}
+          placeholder="Re-enter your password"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+          autoComplete="new-password"
+          aria-invalid={!!errors.confirmPassword}
+          {...register('confirmPassword')}
+        />
+        <button
+          type="button"
+          onClick={() => setShowConfirm(!showConfirm)}
+          className="mt-1 text-xs text-gray-500 hover:text-orange-600"
+        >
+          {showConfirm ? 'Hide password' : 'Show password'}
+        </button>
         {errors.confirmPassword && (
-          <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
+          <p className="text-xs text-red-600">{errors.confirmPassword.message}</p>
         )}
       </div>
 
-      <Button type="submit" disabled={isPending} className="w-full gradient-warm text-white shadow-soft hover:shadow-glow">
-        {isPending ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account…
-          </>
-        ) : (
-          'Create account'
-        )}
-      </Button>
+      <button
+        type="submit"
+        disabled={isPending}
+        className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg disabled:opacity-60"
+      >
+        {isPending ? 'Creating account…' : 'Create account'}
+      </button>
     </form>
   );
 }
