@@ -5,25 +5,10 @@ import { authApi } from '@/lib/api/auth';
 import { setCachedToken, clearCachedToken, setServerCookieHeader } from '@/lib/api/axios-instance';
 import { clearAuthCookies } from '@/lib/cookies';
 import { dashboardPathForRole } from '@/lib/auth/roles';
+import { prepareServerRequest } from '@/lib/auth/server-request';
 import { UserRole } from '@/lib/types';
 import type { ActionResponse, ILoginResponseData, IUser } from '@/lib/types/auth';
 import { extractApiError } from '@/lib/api/errors';
-
-async function prepareServerRequest(): Promise<void> {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('accessToken')?.value;
-  if (accessToken) {
-    setCachedToken(accessToken);
-    setServerCookieHeader(null);
-  } else {
-    clearCachedToken();
-    const allCookies = cookieStore
-      .getAll()
-      .map((c) => `${c.name}=${c.value}`)
-      .join('; ');
-    await setServerCookieHeader(allCookies || null);
-  }
-}
 
 async function setAuthCookies(accessToken?: string, refreshToken?: string): Promise<void> {
   if (!accessToken) return;
