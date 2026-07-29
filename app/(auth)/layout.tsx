@@ -1,22 +1,18 @@
 import Link from 'next/link';
-import { PawPrint } from 'lucide-react';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { ToastContainer } from 'react-toastify';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
       {/* Left side - branding */}
-      <div className="relative hidden flex-1 overflow-hidden gradient-warm lg:block">
+      <div className="relative hidden flex-1 overflow-hidden bg-gradient-to-br from-orange-500 to-amber-500 lg:block">
         <div className="absolute inset-0 flex flex-col justify-between p-12 text-white">
           <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
-              <PawPrint className="h-5 w-5" />
-            </span>
-            <span className="text-xl font-bold">PetEy</span>
+            <span className="text-xl font-bold">🐾 PetEy</span>
           </Link>
 
           <div className="max-w-md">
-            <h1 className="text-4xl font-bold leading-tight text-balance">
+            <h1 className="text-4xl font-bold leading-tight">
               Find your perfect companion with AI-powered matching
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-white/80">
@@ -46,23 +42,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Right side - form */}
-      <div className="flex flex-1 flex-col bg-background">
+      <div className="flex flex-1 flex-col bg-white">
         <div className="flex items-center justify-between p-4 lg:hidden">
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-warm text-white">
-              <PawPrint className="h-5 w-5" />
-            </span>
-            <span className="text-lg font-bold">PetEy</span>
+            <span className="text-lg font-bold">🐾 PetEy</span>
           </Link>
-          <ThemeToggle />
-        </div>
-        <div className="hidden justify-end p-6 lg:flex">
-          <ThemeToggle />
         </div>
         <div className="flex flex-1 items-center justify-center px-4 py-8 sm:px-6">
-          <div className="w-full max-w-md animate-fade-in-up">{children}</div>
+          <div className="w-full max-w-md">{children}</div>
         </div>
       </div>
+
+      <ToastContainer position="top-right" autoClose={4000} />
     </div>
   );
 }

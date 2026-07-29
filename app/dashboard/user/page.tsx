@@ -1,25 +1,47 @@
-import { requireUserRole } from '@/lib/auth/guards';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, FileText, Sparkles, MessageSquare, PawPrint, ArrowRight, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { requireUserRole } from '@/lib/auth/guards';
+import { getUserDashboardData } from '@/lib/actions/dashboard-actions';
+import type { INotification } from '@/lib/types';
 
-const RECENT_ACTIVITIES = [
-  { icon: Heart, label: 'Added Max to favorites', time: '2 hours ago', color: 'text-destructive' },
-  { icon: FileText, label: 'Submitted adoption application for Luna', time: '1 day ago', color: 'text-warning' },
-  { icon: Sparkles, label: 'AI recommended 3 new pets', time: '2 days ago', color: 'text-primary' },
-  { icon: MessageSquare, label: 'Chat with AI assistant about breeds', time: '3 days ago', color: 'text-accent' },
-];
-
-const QUICK_STATS = [
-  { label: 'Favorite Pets', value: '5', icon: Heart, color: 'bg-destructive/10 text-destructive' },
-  { label: 'Applications', value: '2', icon: FileText, color: 'bg-warning/10 text-warning' },
-  { label: 'AI Matches', value: '8', icon: Sparkles, color: 'bg-primary/10 text-primary' },
-  { label: 'Chat Sessions', value: '12', icon: MessageSquare, color: 'bg-accent/10 text-accent' },
-];
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 export default async function UserDashboardPage() {
   const user = await requireUserRole();
+
+  let notifications: INotification[] = [];
+  let unreadCount = 0;
+  let myApplications: unknown[] = [];
+  let errorMsg: string | null = null;
+
+  try {
+    const res = await getUserDashboardData();
+    if (res.success) {
+      notifications = res.notifications ?? [];
+      unreadCount = res.unreadCount ?? 0;
+      myApplications = res.myApplications ?? [];
+    } else {
+      errorMsg = res.message;
+    }
+  } catch {
+    errorMsg = 'Unable to load dashboard data';
+  }
+
+  const quickStats = [
+    { label: 'Unread Notifications', value: unreadCount, icon: '🔔' },
+    { label: 'My Applications', value: myApplications.length, icon: '📋' },
+    { label: 'Favorite Pets', value: user.favorites?.length ?? 0, icon: '❤️' },
+    { label: 'AI Chat', value: 0, icon: '💬' },
+  ];
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -27,103 +49,105 @@ export default async function UserDashboardPage() {
         <h1 className="text-2xl font-bold tracking-tight">
           Welcome back, {user.fullName.split(' ')[0]}!
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-sm text-gray-500">
           Here&apos;s what&apos;s happening with your adoption journey.
         </p>
       </div>
 
+      {errorMsg && (
+        <div className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">
+          {errorMsg}. Showing available data.
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {QUICK_STATS.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.label} className="border-border/60 shadow-card transition-all hover:shadow-glow">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.color}`}>
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <span className="text-2xl font-bold">{stat.value}</span>
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground">{stat.label}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {quickStats.map((stat) => (
+          <div key={stat.label} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-xl">
+                {stat.icon}
+              </span>
+              <span className="text-2xl font-bold">{stat.value}</span>
+            </div>
+            <p className="mt-3 text-sm text-gray-500">{stat.label}</p>
+          </div>
+        ))}
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 border-border/60 shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" /> Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {RECENT_ACTIVITIES.map((activity, i) => {
-                const Icon = activity.icon;
-                return (
-                  <div key={i} className="flex items-start gap-3">
-                    <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted ${activity.color}`}>
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{activity.label}</p>
-                      <p className="text-xs text-muted-foreground">{activity.time}</p>
-                    </div>
+        <div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 flex items-center justify-between text-lg font-semibold">
+            <span className="flex items-center gap-2">🔔 Notifications</span>
+            {unreadCount > 0 && (
+              <span className="rounded-full bg-orange-100 px-2.5 py-1 text-xs font-medium text-orange-600">
+                {unreadCount} unread
+              </span>
+            )}
+          </h2>
+          {notifications.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-500">
+              No notifications yet. You&apos;ll see updates about your applications here.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {notifications.map((notif) => (
+                <div
+                  key={notif._id}
+                  className={`flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-gray-50 ${
+                    !notif.read ? 'border-orange-300 bg-orange-50' : 'border-gray-200'
+                  }`}
+                >
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{notif.title}</p>
+                    <p className="text-xs text-gray-500">{notif.message}</p>
+                    <p className="mt-1 text-xs text-gray-400">{timeAgo(notif.createdAt)}</p>
                   </div>
-                );
-              })}
+                  {!notif.read && (
+                    <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-orange-500" />
+                  )}
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
 
-        <Card className="border-border/60 shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" /> Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/pets">
-                <PawPrint className="mr-2 h-4 w-4" /> Browse Pets
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/ai-matcher">
-                <Sparkles className="mr-2 h-4 w-4" /> AI Pet Matcher
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/dashboard/user/favorites">
-                <Heart className="mr-2 h-4 w-4" /> View Favorites
-              </Link>
-            </Button>
-            <Button asChild className="w-full justify-start gradient-warm text-white">
-              <Link href="/dashboard/user/applications">
-                <FileText className="mr-2 h-4 w-4" /> My Applications
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+            ✨ Quick Actions
+          </h2>
+          <div className="space-y-3">
+            <Link href="/pets" className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-left text-sm font-medium hover:bg-gray-50">
+              🐾 Browse Pets
+            </Link>
+            <Link href="/ai-matcher" className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-left text-sm font-medium hover:bg-gray-50">
+              ✨ AI Pet Matcher
+            </Link>
+            <Link href="/dashboard/user/favorites" className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-left text-sm font-medium hover:bg-gray-50">
+              ❤️ View Favorites
+            </Link>
+            <Link href="/dashboard/user/applications" className="block w-full rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2.5 text-left text-sm font-semibold text-white hover:shadow-md">
+              📋 My Applications
+            </Link>
+          </div>
+        </div>
       </div>
 
-      <Card className="mt-6 overflow-hidden border-border/60 shadow-card">
-        <CardContent className="flex flex-col items-center justify-between gap-4 p-8 sm:flex-row">
+      <div className="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>
             <h3 className="text-lg font-semibold">Looking for your perfect match?</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-gray-500">
               Let our AI analyze your preferences and find the ideal companion.
             </p>
           </div>
-          <Button asChild size="lg" className="gradient-warm text-white">
-            <Link href="/ai-matcher">
-              Try AI Matcher <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+          <Link
+            href="/ai-matcher"
+            className="rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg"
+          >
+            Try AI Matcher →
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

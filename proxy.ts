@@ -3,14 +3,6 @@ import { decodeJWT } from '@/lib/auth/roles';
 
 const PUBLIC_PATHS = ['/', '/login', '/register', '/forgot-password', '/forget-password', '/reset-password', '/verify-email', '/about', '/pets', '/api'];
 
-function isPublicPath(pathname: string): boolean {
-  if (pathname === '/') return true;
-  return PUBLIC_PATHS.some((p) => {
-    if (p === '/pets') return pathname.startsWith('/pets');
-    return pathname === p || pathname.startsWith(p + '/');
-  });
-}
-
 function getRoleFromCookies(req: NextRequest): string | null {
   const token = req.cookies.get('accessToken')?.value;
   if (token) {
@@ -27,7 +19,7 @@ function getRoleFromCookies(req: NextRequest): string | null {
   return null;
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const role = getRoleFromCookies(req);
 

@@ -29,7 +29,7 @@ async function setAuthCookies(accessToken?: string, refreshToken?: string): Prom
   if (!accessToken) return;
   const cookieStore = await cookies();
   cookieStore.set('accessToken', accessToken, {
-    httpOnly: true,
+    httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
