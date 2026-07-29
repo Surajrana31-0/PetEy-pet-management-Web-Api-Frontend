@@ -1,4 +1,7 @@
-export type UserRole = 'USER' | 'ADMIN';
+import { UserRole } from './auth';
+
+export { UserRole } from './auth';
+export type { IUser, IUserPreferences, ILoginResponseData, ILoginPayload, IRegisterPayload } from './auth';
 
 export type PetSpecies = 'DOG' | 'CAT';
 
@@ -7,11 +10,14 @@ export type PetStatus = 'AVAILABLE' | 'PENDING' | 'ADOPTED';
 export interface User {
   _id: string;
   fullName: string;
+  username: string;
   email: string;
   phoneNumber?: string;
   address?: string;
   location?: string;
   role: UserRole;
+  profileImage?: string | null;
+  emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 }

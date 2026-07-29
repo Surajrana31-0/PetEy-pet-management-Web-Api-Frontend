@@ -1,9 +1,6 @@
 export enum PetSpecies {
   DOG = 'DOG',
   CAT = 'CAT',
-  BIRD = 'BIRD',
-  RABBIT = 'RABBIT',
-  OTHER = 'OTHER',
 }
 
 export enum PetSize {
@@ -15,13 +12,18 @@ export enum PetSize {
 export enum PetGender {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
-  UNKNOWN = 'UNKNOWN',
 }
 
 export enum PetStatus {
   AVAILABLE = 'AVAILABLE',
   PENDING = 'PENDING',
   ADOPTED = 'ADOPTED',
+}
+
+export enum ActivityLevel {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
 }
 
 export interface IPet {
@@ -31,20 +33,23 @@ export interface IPet {
   breed: string;
   species: PetSpecies;
   description: string;
-  aiGeneratedDescription?: string | null;
-  emoji: string;
-  imageUrl?: string | null;
+  emoji?: string;
+  status?: PetStatus;
   size?: PetSize;
   gender?: PetGender;
-  weight?: string | null;
-  energyLevel?: string;
-  temperament?: string[];
-  healthStatus?: string;
+  location?: string | null;
+  adoptionFee?: number;
+  goodWithKids?: boolean;
+  goodWithPets?: boolean;
   vaccinated?: boolean;
-  status: PetStatus;
-  createdBy?: string;
-  createdAt: string;
-  updatedAt: string;
+  neutered?: boolean;
+  images?: string[];
+  healthStatus?: string;
+  temperament?: string[];
+  activityLevel?: ActivityLevel;
+  aiGeneratedDescription?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface IPaginatedPets {
@@ -81,17 +86,21 @@ export interface ICreatePetPayload {
   description: string;
   emoji?: string;
   status?: PetStatus;
+  size?: PetSize;
+  gender?: PetGender;
+  location?: string;
+  adoptionFee?: number;
+  goodWithKids?: boolean;
+  goodWithPets?: boolean;
+  vaccinated?: boolean;
+  neutered?: boolean;
+  healthStatus?: string;
+  temperament?: string[];
+  activityLevel?: ActivityLevel;
+  images?: string[];
 }
 
-export interface IUpdatePetPayload {
-  name?: string;
-  age?: number;
-  breed?: string;
-  species?: PetSpecies;
-  description?: string;
-  emoji?: string;
-  status?: PetStatus;
-}
+export type IUpdatePetPayload = Partial<ICreatePetPayload>;
 
 export interface IPetActionResponse {
   success: boolean;

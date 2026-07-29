@@ -1,21 +1,49 @@
-export interface IAvailability {
-  day: string;
+export type WeekDay =
+  | 'MONDAY'
+  | 'TUESDAY'
+  | 'WEDNESDAY'
+  | 'THURSDAY'
+  | 'FRIDAY'
+  | 'SATURDAY'
+  | 'SUNDAY';
+
+export interface IAvailabilitySlot {
+  day: WeekDay;
   startTime: string;
   endTime: string;
 }
 
 export interface IVeterinarian {
-  _id: string;
-  fullName: string;
+  _id?: string;
+  name: string;
   email: string;
-  phoneNumber?: string | null;
-  specialization?: string | null;
-  licenseNumber?: string | null;
-  experience?: number | null;
-  clinicAddress?: string | null;
-  availability?: IAvailability[];
-  isActive?: boolean;
+  phone: string;
+  specializations: string[];
+  location?: string;
   profileImage?: string | null;
-  createdAt: string;
-  updatedAt: string;
+  experienceYears?: number;
+  consultationFee: number;
+  rating: number;
+  reviewCount?: number;
+  about?: string;
+  availability: IAvailabilitySlot[];
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
+
+export interface ICreateVetPayload {
+  name: string;
+  email: string;
+  phone: string;
+  specializations: string[];
+  location: string;
+  profileImage?: string;
+  experienceYears?: number;
+  consultationFee: number;
+  rating?: number;
+  availability: IAvailabilitySlot[];
+  isActive?: boolean;
+}
+
+export type IUpdateVetPayload = Partial<ICreateVetPayload>;

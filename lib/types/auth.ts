@@ -3,15 +3,30 @@ export enum UserRole {
   ADMIN = 'ADMIN',
 }
 
+export interface IUserPreferences {
+  petType: string[];
+  size: ('SMALL' | 'MEDIUM' | 'LARGE')[];
+  age?: string | null;
+  activityLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+  experience?: 'BEGINNER' | 'INTERMEDIATE' | 'EXPERIENCED' | null;
+  hasChildren: boolean;
+  hasOtherPets: boolean;
+}
+
 export interface IUser {
   _id: string;
   fullName: string;
+  username: string;
   email: string;
   profileImage?: string | null;
   phoneNumber?: string | null;
   address?: string | null;
   location?: string | null;
   role: UserRole;
+  preferences?: IUserPreferences;
+  favorites?: string[];
+  emailVerified?: boolean;
+  tokenVersion?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,7 +48,14 @@ export interface IAuthActionResponse {
   message?: string;
   error?: string;
   redirectTo?: string;
+  data?: ILoginResponseData;
 }
+
+export type ActionResponse = {
+  success: boolean;
+  message?: string;
+  data?: ILoginResponseData;
+};
 
 export interface ILoginPayload {
   email: string;

@@ -18,9 +18,17 @@ export function clearCachedToken(): void {
   cachedToken = null;
 }
 
+let serverCookieHeader: string | null = null;
+
+export async function setServerCookieHeader(header: string | null): Promise<void> {
+  serverCookieHeader = header;
+}
+
 api.interceptors.request.use((config) => {
   if (cachedToken) {
     config.headers.Authorization = `Bearer ${cachedToken}`;
+  } else if (serverCookieHeader) {
+    config.headers.Cookie = serverCookieHeader;
   }
   return config;
 });
