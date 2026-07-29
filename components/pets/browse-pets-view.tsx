@@ -10,7 +10,7 @@ import { ErrorState } from '@/components/ui/error-state';
 import { FilterGroup, FilterSidebar } from '@/components/ui/filter-sidebar';
 import { Pagination } from '@/components/ui/pagination';
 import { SearchBar } from '@/components/ui/search-bar';
-import { Select } from '@/components/ui/select';
+
 import { CardSkeleton } from '@/components/ui/skeleton';
 import { PET_SPECIES_LABELS, SORT_OPTIONS } from '@/lib/constants/pets';
 import { useWishlist } from '@/lib/hooks/use-wishlist';
@@ -106,10 +106,11 @@ export function BrowsePetsView({
           onToggle={() => setFiltersOpen((v) => !v)}
         >
           <FilterGroup label="Species">
-            <Select
+            <select
               value={searchParams.get('species') ?? ''}
               onChange={(e) => navigate({ species: e.target.value || undefined })}
               aria-label="Filter by species"
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">All species</option>
               {Object.values(PetSpecies).map((species) => (
@@ -117,14 +118,15 @@ export function BrowsePetsView({
                   {PET_SPECIES_LABELS[species]}
                 </option>
               ))}
-            </Select>
+            </select>
           </FilterGroup>
 
           <FilterGroup label="Size">
-            <Select
+            <select
               value={searchParams.get('size') ?? ''}
               onChange={(e) => navigate({ size: e.target.value || undefined })}
               aria-label="Filter by size"
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">All sizes</option>
               {Object.values(PetSize).map((size) => (
@@ -132,15 +134,16 @@ export function BrowsePetsView({
                   {size.charAt(0) + size.slice(1).toLowerCase()}
                 </option>
               ))}
-            </Select>
+            </select>
           </FilterGroup>
 
           {categories.breeds.length > 0 && (
             <FilterGroup label="Breed">
-              <Select
+              <select
                 value={searchParams.get('breed') ?? ''}
                 onChange={(e) => navigate({ breed: e.target.value || undefined })}
                 aria-label="Filter by breed"
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">All breeds</option>
                 {categories.breeds.map((breed) => (
@@ -148,7 +151,7 @@ export function BrowsePetsView({
                     {breed}
                   </option>
                 ))}
-              </Select>
+              </select>
             </FilterGroup>
           )}
         </FilterSidebar>
@@ -174,18 +177,18 @@ export function BrowsePetsView({
               Filters
             </button>
 
-            <Select
+            <select
               value={searchParams.get('sort') ?? 'newest'}
               onChange={(e) => navigate({ sort: e.target.value })}
               aria-label="Sort pets"
-              className="w-40"
+              className="flex h-10 w-40 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
               ))}
-            </Select>
+            </select>
 
             <ViewToggle view={view} onChange={setView} />
           </div>
