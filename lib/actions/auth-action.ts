@@ -1,6 +1,5 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { authApi } from '@/lib/api/auth';
 import { setCachedToken, clearCachedToken, setServerCookieHeader } from '@/lib/api/axios-instance';
@@ -8,6 +7,7 @@ import { clearAuthCookies } from '@/lib/cookies';
 import { dashboardPathForRole } from '@/lib/auth/roles';
 import { UserRole } from '@/lib/types';
 import type { ActionResponse } from '@/lib/types/auth';
+import { extractApiError } from '@/lib/api/errors';
 
 async function prepareServerRequest(): Promise<void> {
   const cookieStore = await cookies();
@@ -25,9 +25,31 @@ async function prepareServerRequest(): Promise<void> {
   }
 }
 
+async function setAuthCookies(accessToken?: string, refreshToken?: string): Promise<void> {
+  if (!accessToken) return;
+  const cookieStore = await cookies();
+  cookieStore.set('accessToken', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60,
+  });
+  if (refreshToken) {
+    cookieStore.set('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+  }
+}
+
 export interface AuthFormState {
   error: string | null;
   success: boolean;
+  redirectTo?: string;
 }
 
 export async function registerAction(
@@ -50,29 +72,13 @@ export async function registerAction(
     if (!res.success) return { error: res.message || 'Registration failed.', success: false };
 
     if (res.data?.accessToken) {
-      const cookieStore = await cookies();
-      cookieStore.set('accessToken', res.data.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60,
-      });
-      if (res.data.refreshToken) {
-        cookieStore.set('refreshToken', res.data.refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 60 * 60 * 24 * 7,
-        });
-      }
+      await setAuthCookies(res.data.accessToken, res.data.refreshToken);
     }
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Registration failed.', success: false };
-  }
 
-  redirect('/login?registered=1');
+    return { error: null, success: true, redirectTo: '/login?registered=1' };
+  } catch (err) {
+    return { error: extractApiError(err, 'Registration failed.'), success: false };
+  }
 }
 
 export async function loginAction(
@@ -96,35 +102,17 @@ export async function loginAction(
       return { error: res.message || 'Login failed.', success: false };
     }
     role = (res.data.user?.role as UserRole) || UserRole.USER;
-
-    if (res.data.accessToken) {
-      const cookieStore = await cookies();
-      cookieStore.set('accessToken', res.data.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60,
-      });
-      if (res.data.refreshToken) {
-        cookieStore.set('refreshToken', res.data.refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 60 * 60 * 24 * 7,
-        });
-      }
-    }
+    await setAuthCookies(res.data.accessToken, res.data.refreshToken);
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Login failed.', success: false };
+    return { error: extractApiError(err, 'Login failed.'), success: false };
   }
 
-  if (redirectTarget && redirectTarget.startsWith('/') && !redirectTarget.startsWith('//')) {
-    redirect(redirectTarget);
-  }
+  const target =
+    redirectTarget && redirectTarget.startsWith('/') && !redirectTarget.startsWith('//')
+      ? redirectTarget
+      : dashboardPathForRole(role);
 
-  redirect(dashboardPathForRole(role));
+  return { error: null, success: true, redirectTo: target };
 }
 
 export async function logoutAction(): Promise<void> {
@@ -132,7 +120,6 @@ export async function logoutAction(): Promise<void> {
   try { await authApi.logout(); } catch { /* ignore */ }
   clearCachedToken();
   await clearAuthCookies();
-  redirect('/login');
 }
 
 export async function loginUser(data: { email: string; password: string }): Promise<ActionResponse> {
@@ -141,25 +128,7 @@ export async function loginUser(data: { email: string; password: string }): Prom
     const res = await authApi.login({ email: data.email, password: data.password });
     if (!res.success || !res.data) return { success: false, message: res.message || 'Login failed.' };
 
-    if (res.data.accessToken) {
-      const cookieStore = await cookies();
-      cookieStore.set('accessToken', res.data.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60,
-      });
-      if (res.data.refreshToken) {
-        cookieStore.set('refreshToken', res.data.refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 60 * 60 * 24 * 7,
-        });
-      }
-    }
+    await setAuthCookies(res.data.accessToken, res.data.refreshToken);
 
     return {
       success: true,
@@ -167,7 +136,7 @@ export async function loginUser(data: { email: string; password: string }): Prom
       data: res.data,
     };
   } catch (err) {
-    return { success: false, message: err instanceof Error ? err.message : 'Login failed.' };
+    return { success: false, message: extractApiError(err, 'Login failed.') };
   }
 }
 
@@ -183,7 +152,7 @@ export async function registerUser(data: {
     if (!res.success) return { success: false, message: res.message || 'Registration failed.' };
     return { success: true, message: 'Account created successfully.' };
   } catch (err) {
-    return { success: false, message: err instanceof Error ? err.message : 'Registration failed.' };
+    return { success: false, message: extractApiError(err, 'Registration failed.') };
   }
 }
 
@@ -202,7 +171,7 @@ export async function handleRequestPasswordReset(email: string): Promise<ActionR
     if (!res.success) return { success: false, message: res.message || 'Failed to send reset link.' };
     return { success: true, message: res.message || 'Password reset link sent to your email.' };
   } catch (err) {
-    return { success: false, message: err instanceof Error ? err.message : 'Failed to send reset link.' };
+    return { success: false, message: extractApiError(err, 'Failed to send reset link.') };
   }
 }
 
@@ -213,7 +182,7 @@ export async function handleResetPassword(token: string, newPassword: string): P
     if (!res.success) return { success: false, message: res.message || 'Failed to reset password.' };
     return { success: true, message: res.message || 'Password reset successfully!' };
   } catch (err) {
-    return { success: false, message: err instanceof Error ? err.message : 'Failed to reset password.' };
+    return { success: false, message: extractApiError(err, 'Failed to reset password.') };
   }
 }
 
@@ -224,7 +193,7 @@ export async function handleVerifyEmail(token: string): Promise<ActionResponse> 
     if (!res.success) return { success: false, message: res.message || 'Email verification failed.' };
     return { success: true, message: res.message || 'Email verified successfully!' };
   } catch (err) {
-    return { success: false, message: err instanceof Error ? err.message : 'Email verification failed.' };
+    return { success: false, message: extractApiError(err, 'Email verification failed.') };
   }
 }
 
@@ -247,7 +216,7 @@ export async function updateProfileAction(
     if (!res.success) return { success: false, message: res.message || 'Failed to update profile.' };
     return { success: true, message: res.message || 'Profile updated successfully.' };
   } catch (err) {
-    return { success: false, message: err instanceof Error ? err.message : 'Failed to update profile.' };
+    return { success: false, message: extractApiError(err, 'Failed to update profile.') };
   }
 }
 
@@ -261,7 +230,7 @@ export async function handleUpdatePassword(data: {
     if (!res.success) return { success: false, message: res.message || 'Failed to update password.' };
     return { success: true, message: res.message || 'Password updated successfully.' };
   } catch (err) {
-    return { success: false, message: err instanceof Error ? err.message : 'Failed to update password.' };
+    return { success: false, message: extractApiError(err, 'Failed to update password.') };
   }
 }
 

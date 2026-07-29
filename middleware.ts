@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { decodeJWT } from '@/lib/auth/roles';
 
-const PUBLIC_PATHS = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/about', '/pets', '/api'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/forgot-password', '/forget-password', '/reset-password', '/verify-email', '/about', '/pets', '/api'];
 
 function isPublicPath(pathname: string): boolean {
   if (pathname === '/') return true;

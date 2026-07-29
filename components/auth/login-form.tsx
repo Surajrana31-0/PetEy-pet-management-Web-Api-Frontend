@@ -1,21 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { loginSchema, type LoginValues } from '@/lib/schemas/auth-schema';
 import { loginAction, type AuthFormState } from '@/lib/actions/auth-action';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { useSearchParams } from 'next/navigation';
 
 export function LoginForm() {
+  const router = useRouter();
   const params = useSearchParams();
   const redirectTarget = params.get('redirect') || '';
   const registered = params.get('registered') === '1';
+  const reset = params.get('reset') === 'true';
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -29,9 +31,10 @@ export function LoginForm() {
     defaultValues: { email: '', password: '' },
   });
 
-  if (registered && !serverError) {
-    toast.success('Account created! Please sign in.');
-  }
+  useEffect(() => {
+    if (registered) toast.success('Account created! Please sign in.');
+    if (reset) toast.success('Password updated! Sign in with your new password.');
+  }, [registered, reset]);
 
   const onSubmit = async (data: LoginValues) => {
     setPending(true);
@@ -42,9 +45,31 @@ export function LoginForm() {
     formData.set('password', data.password);
     if (redirectTarget) formData.set('redirect', redirectTarget);
 
-    const result: AuthFormState = await loginAction({ error: null, success: false }, formData);
-    if (!result.success) {
-      setServerError(result.error);
+    try {
+      const result: AuthFormState = await loginAction({ error: null, success: false }, formData);
+      if (!result.success) {
+        setServerError(result.error || 'Login failed. Please try again.');
+        setPending(false);
+        return;
+      }
+      if (result.redirectTo) {
+        window.location.href = result.redirectTo;
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'digest' in error &&
+        typeof (error as { digest: unknown }).digest === 'string' &&
+        (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
+      ) {
+        return;
+      }
+      setServerError(
+        error instanceof Error ? error.message : 'Login failed. Please try again.',
+      );
       setPending(false);
     }
   };
@@ -52,8 +77,12 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       {serverError && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive animate-fade-in-down">
-          {serverError}
+        <div className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive animate-fade-in-down">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <span className="font-semibold">Sign in failed</span>
+            <p className="mt-0.5 text-destructive/80">{serverError}</p>
+          </div>
         </div>
       )}
 

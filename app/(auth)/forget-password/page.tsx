@@ -1,16 +1,5 @@
-import ForgetForm from '../_components/ForgetForm';
-import { AuthShell, AuthSwitchLink } from '@/components/auth/auth-shell';
+import { redirect } from 'next/navigation';
 
 export default function ForgetPasswordPage() {
-  return (
-    <AuthShell
-      title="Forgot password?"
-      description="Enter your email and we'll send you a link to reset your password."
-      footer={
-        <AuthSwitchLink prompt="Remember your password?" href="/login" linkText="Back to sign in" />
-      }
-    >
-      <ForgetForm />
-    </AuthShell>
-  );
+  redirect('/forgot-password');
 }

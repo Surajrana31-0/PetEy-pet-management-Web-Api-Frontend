@@ -1,5 +1,5 @@
+import Link from 'next/link';
 import VerifyEmailForm from '../_components/VerifyEmailForm';
-import { AuthShell, AuthSwitchLink } from '@/components/auth/auth-shell';
 
 export default async function VerifyEmailPage({
   searchParams,
@@ -9,14 +9,22 @@ export default async function VerifyEmailPage({
   const { token } = await searchParams;
 
   return (
-    <AuthShell
-      title="Verify your email"
-      description="We sent a verification link to your email. Click below to verify your account and start your pet adoption journey."
-      footer={
-        <AuthSwitchLink prompt="Ready to sign in?" href="/login" linkText="Go to sign in" />
-      }
-    >
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight">Verify your email</h1>
+        <p className="text-sm text-muted-foreground">
+          We sent a verification link to your email. Click below to verify your account and start your pet adoption journey.
+        </p>
+      </div>
+
       <VerifyEmailForm token={token} />
-    </AuthShell>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Ready to sign in?{' '}
+        <Link href="/login" className="font-semibold text-brand hover:text-brand-hover transition-colors">
+          Go to sign in
+        </Link>
+      </p>
+    </div>
   );
 }

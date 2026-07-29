@@ -1,14 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Mail, Lock, User, UserCheck, Loader2, Check } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, UserCheck, Loader2, AlertCircle, Check } from 'lucide-react';
 import { registerSchema, type RegisterValues } from '@/lib/schemas/auth-schema';
 import { registerAction, type AuthFormState } from '@/lib/actions/auth-action';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 const PASSWORD_RULES = [
   { test: (v: string) => v.length >= 8, label: '8+ characters' },
@@ -19,6 +21,7 @@ const PASSWORD_RULES = [
 ];
 
 export function RegisterForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -44,9 +47,28 @@ export function RegisterForm() {
     formData.set('email', data.email);
     formData.set('password', data.password);
 
-    const result: AuthFormState = await registerAction({ error: null, success: false }, formData);
-    if (!result.success) {
-      setServerError(result.error);
+    try {
+      const result: AuthFormState = await registerAction({ error: null, success: false }, formData);
+      if (!result.success) {
+        setServerError(result.error || 'Registration failed. Please try again.');
+        setPending(false);
+        return;
+      }
+      toast.success('Account created! Redirecting to sign in…');
+      router.push(result.redirectTo || '/login?registered=1');
+    } catch (error) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'digest' in error &&
+        typeof (error as { digest: unknown }).digest === 'string' &&
+        (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
+      ) {
+        return;
+      }
+      setServerError(
+        error instanceof Error ? error.message : 'Something went wrong. Please try again.',
+      );
       setPending(false);
     }
   };
@@ -54,8 +76,12 @@ export function RegisterForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       {serverError && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive animate-fade-in-down">
-          {serverError}
+        <div className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive animate-fade-in-down">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <span className="font-semibold">Registration failed</span>
+            <p className="mt-0.5 text-destructive/80">{serverError}</p>
+          </div>
         </div>
       )}
 

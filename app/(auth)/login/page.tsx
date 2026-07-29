@@ -4,10 +4,10 @@ import { LoginForm } from '@/components/auth/login-form';
 
 export default function LoginPage() {
   return (
-    <div>
-      <div className="mb-8">
+    <div className="space-y-8">
+      <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Sign in to your PetEy account to continue your adoption journey.
         </p>
       </div>
@@ -16,15 +16,17 @@ export default function LoginPage() {
         <LoginForm />
       </Suspense>
 
-      <div className="mt-6 text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{' '}
-        <Link href="/register" className="font-medium text-primary hover:underline">
-          Sign up
-        </Link>
-      </div>
-
-      <div className="mt-4 text-center">
-        <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+      <div className="space-y-3 text-center">
+        <p className="text-sm text-muted-foreground">
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className="font-semibold text-brand hover:text-brand-hover transition-colors">
+            Sign up
+          </Link>
+        </p>
+        <Link
+          href="/forgot-password"
+          className="inline-block text-xs text-muted-foreground hover:text-brand transition-colors"
+        >
           Forgot your password?
         </Link>
       </div>
