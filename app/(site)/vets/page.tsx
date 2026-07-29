@@ -12,7 +12,7 @@ export default async function PublicVetsPage() {
   try {
     const res = await getAllVets();
     if (res.success && res.data) {
-      vets = Array.isArray(res.data) ? res.data : res.data.veterinarians || [];
+      vets = Array.isArray(res.data) ? res.data : res.data || [];
     }
   } catch {
     vets = [

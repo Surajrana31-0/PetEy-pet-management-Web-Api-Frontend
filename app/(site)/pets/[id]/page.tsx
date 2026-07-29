@@ -62,7 +62,7 @@ export default function PetDetailsPage({ params }: { params: Promise<{ id: strin
         <div className="relative">
           <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/10">
             <div className="flex h-full items-center justify-center"><span className="text-[10rem] animate-float">{pet.emoji || (pet.species === 'DOG' ? '🐶' : '🐱')}</span></div>
-            <div className="absolute left-4 top-4"><StatusBadge status={pet.status} /></div>
+            <div className="absolute left-4 top-4"><StatusBadge status={pet.status ?? 'AVAILABLE'} /></div>
           </div>
         </div>
         <div className="flex flex-col">
@@ -73,7 +73,7 @@ export default function PetDetailsPage({ params }: { params: Promise<{ id: strin
           <h1 className="text-4xl font-bold tracking-tight">{pet.name}</h1>
           <p className="mt-1 text-lg text-muted-foreground">{pet.age}</p>
           <div className="mt-6 space-y-3">
-            <div className="flex items-center gap-3 text-sm"><Calendar className="h-4 w-4 text-muted-foreground" /><span className="text-muted-foreground">Listed on</span><span className="font-medium">{new Date(pet.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
+            <div className="flex items-center gap-3 text-sm"><Calendar className="h-4 w-4 text-muted-foreground" /><span className="text-muted-foreground">Listed on</span><span className="font-medium">{new Date(pet.createdAt ?? Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
           </div>
           <div className="mt-6"><h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">About</h3><p className="mt-2 leading-relaxed text-foreground/90">{pet.description}</p></div>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">

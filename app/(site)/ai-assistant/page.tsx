@@ -12,7 +12,6 @@ import { Tabs } from '@/components/ui/tabs';
 export default function AIAssistantPage() {
   const [activeTab, setActiveTab] = useState('chat');
 
-  // Chat state
   const [messages, setMessages] = useState<{ sender: 'user' | 'ai'; text: string; time: string }[]>([
     {
       sender: 'ai',
@@ -22,8 +21,8 @@ export default function AIAssistantPage() {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isChatPending, startChatTransition] = useTransition();
+  const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
 
-  // Matcher state
   const [preferences, setPreferences] = useState({
     lifestyle: 'active',
     housingType: 'house',
@@ -47,7 +46,8 @@ export default function AIAssistantPage() {
 
     startChatTransition(async () => {
       try {
-        const res = await sendChat(userText);
+        const res = await sendChat(userText, sessionId);
+        if (res.data?.sessionId) setSessionId(res.data.sessionId);
         const reply = res.data?.message || res.message || 'I recommend checking out our available Golden Retrievers!';
         setMessages((prev) => [
           ...prev,
@@ -69,9 +69,9 @@ export default function AIAssistantPage() {
   const handleRunMatch = () => {
     startMatchTransition(async () => {
       try {
-        const res = await matchPets(preferences);
+        const res = await matchPets();
         if (res.success && res.data) {
-          setMatchedPets(Array.isArray(res.data) ? res.data : res.data.matches || []);
+          setMatchedPets(Array.isArray(res.data) ? res.data : []);
           toast.success('AI Matching complete!');
         }
       } catch (err: any) {
@@ -83,7 +83,6 @@ export default function AIAssistantPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-semibold border border-amber-500/20">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
@@ -108,7 +107,6 @@ export default function AIAssistantPage() {
           </div>
         </div>
 
-        {/* Tab 1: AI Chat Assistant */}
         {activeTab === 'chat' && (
           <Card className="border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl overflow-hidden max-w-3xl mx-auto">
             <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
@@ -142,13 +140,14 @@ export default function AIAssistantPage() {
                       m.sender === 'user'
                         ? 'bg-emerald-600 text-white rounded-br-none'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none border border-slate-200/60 dark:border-slate-700'
-                    }`}
+                    }`
+                    }
                   >
                     <p>{m.text}</p>
                     <span
                       className={`text-[9px] block mt-1 text-right ${
                         m.sender === 'user' ? 'text-emerald-200' : 'text-slate-400'
-                      }`}
+                      }`
                     >
                       {m.time}
                     </span>
@@ -183,7 +182,6 @@ export default function AIAssistantPage() {
           </Card>
         )}
 
-        {/* Tab 2: AI Matcher */}
         {activeTab === 'matcher' && (
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <Card className="border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl p-6 space-y-4">
