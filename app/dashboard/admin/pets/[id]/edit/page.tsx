@@ -4,18 +4,17 @@ import { use } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { PetForm } from '@/components/pet-form';
+import PetForm from '@/app/_components/PetForm';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/skeletons';
 import { ErrorState } from '@/components/error-state';
 import { petsApi } from '@/lib/api/pets';
-import type { Pet } from '@/lib/types';
-import { updatePetAction } from '@/lib/actions/pet-actions';
+import type { IPet } from '@/lib/types/pet';
 
 const fetcher = async (id: string) => {
   const res = await petsApi.getById(id);
-  if (res.error) throw new Error(res.error);
-  return res.data as Pet;
+  if (!res.success) throw new Error(res.message || 'Failed to load pet');
+  return res.data as IPet;
 };
 
 export default function EditPetPage({ params }: { params: Promise<{ id: string }> }) {
@@ -46,13 +45,7 @@ export default function EditPetPage({ params }: { params: Promise<{ id: string }
       {error && !isLoading && <ErrorState message={error.message} />}
 
       {!isLoading && !error && pet && (
-        <PetForm
-          mode="edit"
-          pet={pet}
-          onSubmit={async (formData) => {
-            return await updatePetAction({ error: null, success: false }, formData);
-          }}
-        />
+        <PetForm mode="edit" pet={pet} />
       )}
     </div>
   );

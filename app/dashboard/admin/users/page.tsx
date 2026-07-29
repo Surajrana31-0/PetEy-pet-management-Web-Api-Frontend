@@ -10,7 +10,7 @@ export default async function AdminUsersPage() {
   const admin = await requireAdminRole();
 
   let users: any[] = [];
-  let stats = { totalUsers: 0, adminUsers: 0, regularUsers: 0 };
+  let stats: Record<string, number> = { totalUsers: 0, adminUsers: 0, regularUsers: 0 };
   let error: string | null = null;
 
   try {
@@ -20,10 +20,10 @@ export default async function AdminUsersPage() {
     ]);
 
     if (usersRes.success && usersRes.data) {
-      users = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data.users || [];
+      users = Array.isArray(usersRes.data) ? usersRes.data : [];
     }
     if (statsRes.success && statsRes.data) {
-      stats = statsRes.data;
+      stats = statsRes.data as Record<string, number>;
     }
   } catch (err: any) {
     error = err.message || 'Failed to load user directory';
@@ -49,7 +49,6 @@ export default async function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="border border-slate-200/80 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-4">
           <p className="text-[11px] font-semibold uppercase text-slate-500">Total Registered Users</p>

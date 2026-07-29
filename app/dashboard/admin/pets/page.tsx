@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 
 const fetcher = async () => {
   const res = await petsApi.list();
-  if (res.error) throw new Error(res.error);
+  if (!res.success) throw new Error(res.message || 'Failed to load pets');
   const data = res.data;
   if (Array.isArray(data)) return data;
   return (data as { pets: Pet[] }).pets;

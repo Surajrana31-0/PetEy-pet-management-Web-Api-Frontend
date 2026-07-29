@@ -10,7 +10,7 @@ export default async function AdminVetsPage() {
   const admin = await requireAdminRole();
 
   let vets: any[] = [];
-  let stats = { totalVets: 0, activeVets: 0 };
+  let stats: Record<string, number> = { totalVets: 0, activeVets: 0 };
   let error: string | null = null;
 
   try {
@@ -20,10 +20,10 @@ export default async function AdminVetsPage() {
     ]);
 
     if (vetsRes.success && vetsRes.data) {
-      vets = Array.isArray(vetsRes.data) ? vetsRes.data : vetsRes.data.veterinarians || [];
+      vets = Array.isArray(vetsRes.data) ? vetsRes.data : [];
     }
     if (statsRes.success && statsRes.data) {
-      stats = statsRes.data;
+      stats = statsRes.data as Record<string, number>;
     }
   } catch (err: any) {
     error = err.message || 'Failed to load veterinarian directory';
@@ -49,7 +49,6 @@ export default async function AdminVetsPage() {
         </div>
       </div>
 
-      {/* Stats summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
         <Card className="border border-slate-200/80 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-4">
           <p className="text-[11px] font-semibold uppercase text-slate-500">Total Registered Vets</p>

@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { PetForm } from '@/components/pet-form';
+import PetForm from '@/app/_components/PetForm';
 import { Button } from '@/components/ui/button';
-import { createPetAction } from '@/lib/actions/pet-actions';
 
-export default function CreatePetPage() {
+export default function NewPetPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-6">
@@ -18,12 +17,7 @@ export default function CreatePetPage() {
         <p className="mt-1 text-sm text-muted-foreground">Create a new pet listing for adoption.</p>
       </div>
 
-      <PetForm
-        mode="create"
-        onSubmit={async (formData) => {
-          return await createPetAction({ error: null, success: false }, formData);
-        }}
-      />
+      <PetForm mode="create" />
     </div>
   );
 }
