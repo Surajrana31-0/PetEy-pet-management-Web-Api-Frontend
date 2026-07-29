@@ -68,10 +68,10 @@ export async function updateBlog(
 
 export async function updateBlogStatus(
   id: string,
-  status: 'DRAFT' | 'PUBLISHED',
+  published: boolean,
 ): Promise<IApiResponse<IBlog>> {
   try {
-    const response = await axiosInstance.patch(ENDPOINTS.ADMIN.BLOGS.UPDATE_STATUS(id), { status });
+    const response = await axiosInstance.patch(ENDPOINTS.ADMIN.BLOGS.UPDATE_STATUS(id), { published });
     return response.data;
   } catch (error) {
     throwApiError(error, 'Failed to update blog status');

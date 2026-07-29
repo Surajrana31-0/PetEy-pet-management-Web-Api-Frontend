@@ -5,8 +5,8 @@ import type { IApiResponse } from '../../types/api';
 import type { IUser, UserRole } from '../../types/auth';
 
 export interface ICreateUserPayload {
-  firstName: string;
-  lastName: string;
+  fullName: string;
+  username: string;
   email: string;
   password: string;
   role?: string;

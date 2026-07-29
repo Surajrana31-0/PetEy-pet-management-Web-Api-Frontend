@@ -44,9 +44,9 @@ export async function updateVet(id: string, formData: FormData): Promise<IApiRes
   }
 }
 
-export async function toggleVetActive(id: string): Promise<IApiResponse<IVeterinarian>> {
+export async function toggleVetActive(id: string, isActive: boolean): Promise<IApiResponse<IVeterinarian>> {
   try {
-    const response = await axiosInstance.patch(ENDPOINTS.ADMIN.VETS.TOGGLE_ACTIVE(id));
+    const response = await axiosInstance.patch(ENDPOINTS.ADMIN.VETS.TOGGLE_ACTIVE(id), { isActive });
     return response.data;
   } catch (error) {
     throwApiError(error, 'Failed to toggle active status');
