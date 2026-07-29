@@ -22,15 +22,16 @@ export async function registerAction(
   formData: FormData
 ): Promise<AuthFormState> {
   const fullName = formData.get('fullName')?.toString().trim();
+  const username = formData.get('username')?.toString().trim();
   const email = formData.get('email')?.toString().trim().toLowerCase();
   const password = formData.get('password')?.toString();
 
-  if (!fullName || !email || !password) {
+  if (!fullName || !username || !email || !password) {
     return { error: 'All fields are required.', success: false };
   }
 
   try {
-    const res = await authApi.register({ fullName, email, password });
+    const res = await authApi.register({ fullName, username, email, password });
     if (!res.success) return { error: res.message || 'Registration failed.', success: false };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Registration failed.', success: false };
@@ -85,7 +86,7 @@ export async function loginUser(data: { email: string; password: string }): Prom
   }
 }
 
-export async function registerUser(data: { fullName: string; email: string; password: string }): Promise<ActionResponse> {
+export async function registerUser(data: { fullName: string; username: string; email: string; password: string }): Promise<ActionResponse> {
   try {
     const res = await authApi.register(data);
     if (!res.success) return { success: false, message: res.message || 'Registration failed.' };
