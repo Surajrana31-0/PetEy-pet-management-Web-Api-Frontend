@@ -54,7 +54,7 @@ export function PublicPetCard({
                 <Link href={`/pets/${pet._id}`} className="pet-name hover:text-brand transition-colors">
                   {pet.name}
                 </Link>
-                <Badge variant={statusVariant(pet.status)}>{pet.status}</Badge>
+                <Badge variant={statusVariant(pet.status ?? PetStatus.AVAILABLE)}>{pet.status}</Badge>
               </div>
               <p className="pet-breed">
                 {pet.breed} · {PET_SPECIES_LABELS[pet.species]} · {pet.age}
@@ -140,7 +140,7 @@ export function PublicPetCard({
           <Link href={`/pets/${pet._id}`} className="pet-name hover:text-brand transition-colors">
             {pet.name}
           </Link>
-          <Badge variant={statusVariant(pet.status)}>{pet.status}</Badge>
+          <Badge variant={statusVariant(pet.status ?? PetStatus.AVAILABLE)}>{pet.status}</Badge>
         </div>
         <div className="pet-breed flex items-center gap-1">
           <MapPin className="h-3.5 w-3.5" aria-hidden />

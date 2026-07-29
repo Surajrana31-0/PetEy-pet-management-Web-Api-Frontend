@@ -28,7 +28,7 @@ export function AiMatcherPreview() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault(); setError(null); setUsedDemo(false);
     startTransition(async () => {
-      const result = await aiMatchAction(form);
+      const result = await aiMatchAction();
       if (result.success && result.matches.length > 0) { setMatches(result.matches); return; }
       setUsedDemo(true); setMatches(DEMO_MATCHES);
       if (!result.success) { setError(result.message ?? 'AI service unavailable — showing sample matches.'); }

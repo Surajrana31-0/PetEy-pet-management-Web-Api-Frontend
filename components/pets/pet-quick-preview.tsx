@@ -47,7 +47,7 @@ export function PetQuickPreview({ pet, index = 0, onClose }: PetQuickPreviewProp
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={statusVariant(pet.status)}>{pet.status}</Badge>
+          <Badge variant={statusVariant(pet.status ?? PetStatus.AVAILABLE)}>{pet.status}</Badge>
           {pet.temperament?.slice(0, 3).map((trait) => (
             <Badge key={trait} variant="outline">
               {trait}
