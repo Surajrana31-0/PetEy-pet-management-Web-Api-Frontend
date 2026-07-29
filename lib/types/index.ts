@@ -25,7 +25,7 @@ export interface AuthResponse {
 export interface Pet {
   _id: string;
   name: string;
-  age: string;
+  age: number;
   breed: string;
   species: PetSpecies;
   description: string;
@@ -38,7 +38,7 @@ export interface Pet {
 
 export interface CreatePetInput {
   name: string;
-  age: string;
+  age: number;
   breed: string;
   species: PetSpecies;
   description: string;

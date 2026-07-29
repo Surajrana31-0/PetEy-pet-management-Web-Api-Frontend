@@ -5,15 +5,12 @@ import { redirect } from 'next/navigation';
 import { petsApi } from '@/lib/api/pets';
 import type { CreatePetInput, UpdatePetInput, PetStatus, PetSpecies } from '@/lib/types';
 
-export interface PetFormState {
-  error: string | null;
+export interface PetActionResponse {
   success: boolean;
+  message?: string;
 }
 
-export async function createPetAction(
-  _prev: PetFormState,
-  formData: FormData
-): Promise<PetFormState> {
+export async function createPetAction(formData: FormData): Promise<PetActionResponse> {
   const name = formData.get('name')?.toString().trim();
   const age = formData.get('age')?.toString().trim();
   const breed = formData.get('breed')?.toString().trim();
@@ -23,26 +20,22 @@ export async function createPetAction(
   const status = (formData.get('status')?.toString() as PetStatus) || 'AVAILABLE';
 
   if (!name || !age || !breed || !species || !description) {
-    return { error: 'All required fields must be filled.', success: false };
+    return { success: false, message: 'All required fields must be filled.' };
   }
   if (description.length < 10) {
-    return { error: 'Description must be at least 10 characters.', success: false };
+    return { success: false, message: 'Description must be at least 10 characters.' };
   }
 
-  const body: CreatePetInput = { name, age, breed, species, description, emoji, status };
-  const res = await petsApi.create(body);
-  if (res.error) return { error: res.error, success: false };
+  const body: CreatePetInput = { name, age: Number(age), breed, species, description, emoji, status };
+  const res = await petsApi.create(body as unknown as Record<string, unknown>);
+  if (res.error) return { success: false, message: res.error };
 
   revalidatePath('/dashboard/admin/pets');
   redirect('/dashboard/admin/pets');
 }
 
-export async function updatePetAction(
-  _prev: PetFormState,
-  formData: FormData
-): Promise<PetFormState> {
-  const id = formData.get('id')?.toString();
-  if (!id) return { error: 'Pet ID is missing.', success: false };
+export async function updatePetAction(id: string, formData: FormData): Promise<PetActionResponse> {
+  if (!id) return { success: false, message: 'Pet ID is missing.' };
 
   const name = formData.get('name')?.toString().trim();
   const age = formData.get('age')?.toString().trim();
@@ -54,15 +47,15 @@ export async function updatePetAction(
 
   const body: UpdatePetInput = {};
   if (name) body.name = name;
-  if (age) body.age = age;
+  if (age) body.age = Number(age);
   if (breed) body.breed = breed;
   if (species) body.species = species;
   if (description) body.description = description;
   if (emoji) body.emoji = emoji;
   if (status) body.status = status;
 
-  const res = await petsApi.update(id, body);
-  if (res.error) return { error: res.error, success: false };
+  const res = await petsApi.update(id, body as unknown as Record<string, unknown>);
+  if (res.error) return { success: false, message: res.error };
 
   revalidatePath('/dashboard/admin/pets');
   revalidatePath(`/pets/${id}`);

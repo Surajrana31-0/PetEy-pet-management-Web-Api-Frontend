@@ -1,12 +1,14 @@
 import type { IAiPetMatch } from './pet';
 
 export interface IAiMatchPreferences {
-  lifestyle: string;
-  housingType: string;
-  hasChildren: boolean;
-  hasOtherPets: boolean;
-  activityLevel: string;
-  preferences: string;
+  lifestyle?: string;
+  housingType?: string;
+  hasChildren?: boolean;
+  hasOtherPets?: boolean;
+  activityLevel?: string;
+  preferredSpecies?: string;
+  preferences?: string;
+  [key: string]: unknown;
 }
 
 export type IAiMatchResult = IAiPetMatch[];

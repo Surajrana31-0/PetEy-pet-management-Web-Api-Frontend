@@ -1,6 +1,10 @@
-import { getTokenCookie } from '../cookies';
+import { setCachedToken } from './axios-instance';
 
 export async function getAuthHeaders(): Promise<Record<string, string>> {
-  const token = await getTokenCookie();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('auth_token');
+    if (token) setCachedToken(token);
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+  return {};
 }

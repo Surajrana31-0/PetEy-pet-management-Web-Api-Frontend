@@ -22,6 +22,8 @@ export function dashboardPathForRole(role?: UserRole | string | null): string {
   return isAdmin(role) ? '/dashboard/admin' : '/dashboard/user';
 }
 
+export const getDashboardPathForRole = dashboardPathForRole;
+
 export function isSafeRedirect(target: string | null | undefined): boolean {
   if (!target) return false;
   return target.startsWith('/') && !target.startsWith('//');
