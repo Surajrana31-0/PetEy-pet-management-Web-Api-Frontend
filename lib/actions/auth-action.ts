@@ -1,6 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { authApi } from '@/lib/api/auth';
 import { setCachedToken, clearCachedToken, setServerCookieHeader } from '@/lib/api/axios-instance';
 import { clearAuthCookies } from '@/lib/cookies';
@@ -233,6 +234,7 @@ export async function updateProfileAction(
   await prepareServerRequest();
   try {
     let body: Record<string, unknown> = { ...data };
+
     if (imageFile) {
       const formData = new FormData();
       Object.entries(body).forEach(([key, value]) => {
@@ -241,9 +243,17 @@ export async function updateProfileAction(
       formData.append('profileImage', imageFile);
       body = formData as unknown as Record<string, unknown>;
     }
+
     const res = await authApi.updateProfile(body);
     if (!res.success) return { success: false, message: res.message || 'Failed to update profile.' };
-    if (res.data) await setUserDataCookie(res.data);
+
+    if (res.data) {
+      await setUserDataCookie(res.data);
+      revalidatePath('/dashboard', 'layout');
+      revalidatePath('/dashboard/user/profile');
+      revalidatePath('/dashboard/profile');
+    }
+
     return { success: true, message: res.message || 'Profile updated successfully.' };
   } catch (err) {
     return { success: false, message: extractApiError(err, 'Failed to update profile.') };

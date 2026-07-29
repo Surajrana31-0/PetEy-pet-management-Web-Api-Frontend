@@ -19,6 +19,7 @@ const USER_NAV: NavItem[] = [
   { href: '/dashboard/user/profile', label: 'My Profile', icon: '👤' },
   { href: '/dashboard/user/favorites', label: 'Favorite Pets', icon: '❤️' },
   { href: '/dashboard/user/applications', label: 'Applications', icon: '📋' },
+  { href: '/dashboard/user/adoptions', label: 'My Adoptions', icon: '📝' },
   { href: '/dashboard/user/recommendations', label: 'AI Recommendations', icon: '✨' },
   { href: '/dashboard/user/chat-history', label: 'Chat History', icon: '💬' },
   { href: '/dashboard/user/settings', label: 'Settings', icon: '⚙️' },
@@ -33,11 +34,28 @@ const ADMIN_NAV: NavItem[] = [
   { href: '/dashboard/admin/analytics', label: 'Analytics', icon: '📈' },
 ];
 
-export function DashboardNavbar({ role, userName }: { role: UserRole; userName: string }) {
+function resolveImageUrl(profileImage: string | null | undefined): string | null {
+  if (!profileImage) return null;
+  if (profileImage.startsWith('http')) return profileImage;
+  const base = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8088/api/v1').replace('/api/v1', '');
+  return `${base}${profileImage}`;
+}
+
+export function DashboardNavbar({
+  role,
+  userName,
+  profileImage,
+}: {
+  role: UserRole;
+  userName: string;
+  profileImage?: string | null;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const nav = role === 'ADMIN' ? ADMIN_NAV : USER_NAV;
   const dashboardHome = role === 'ADMIN' ? '/dashboard/admin' : '/dashboard/user';
+  const avatarUrl = resolveImageUrl(profileImage);
+  const initial = userName.charAt(0).toUpperCase();
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
     <div className="flex h-full flex-col">
@@ -71,9 +89,18 @@ export function DashboardNavbar({ role, userName }: { role: UserRole; userName: 
 
       <div className="border-t border-gray-200 p-3">
         <div className="mb-2 flex items-center gap-3 px-3 py-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 font-semibold text-orange-600">
-            {userName.charAt(0).toUpperCase()}
-          </span>
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarUrl}
+              alt={userName}
+              className="h-9 w-9 rounded-full object-cover ring-2 ring-orange-200"
+            />
+          ) : (
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 font-semibold text-orange-600">
+              {initial}
+            </span>
+          )}
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{userName}</div>
             <div className="text-xs text-gray-500">{role === 'ADMIN' ? 'Administrator' : 'Member'}</div>
@@ -102,13 +129,23 @@ export function DashboardNavbar({ role, userName }: { role: UserRole; userName: 
           <span className="text-xl">🐾</span>
           <span className="font-bold">PetEy</span>
         </Link>
-        <button
-          onClick={() => setOpen(!open)}
-          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
-          aria-label="Open menu"
-        >
-          ☰
-        </button>
+        <div className="flex items-center gap-3">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt={userName} className="h-8 w-8 rounded-full object-cover" />
+          ) : (
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 font-semibold text-orange-600">
+              {initial}
+            </span>
+          )}
+          <button
+            onClick={() => setOpen(!open)}
+            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
+        </div>
       </div>
 
       {open && (

@@ -16,8 +16,15 @@ export const authApi = {
   me: () =>
     axiosInstance.get<IApiResponse<IUser>>(ENDPOINTS.AUTH.ME).then((r) => r.data),
 
-  updateProfile: (data: Record<string, unknown>) =>
-    axiosInstance.put<IApiResponse<IUser>>(ENDPOINTS.AUTH.UPDATE, data).then((r) => r.data),
+  updateProfile: (data: Record<string, unknown>) => {
+    const isFormData =
+      typeof FormData !== 'undefined' && data instanceof FormData;
+    return axiosInstance
+      .put<IApiResponse<IUser>>(ENDPOINTS.AUTH.UPDATE, data, isFormData ? {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      } : undefined)
+      .then((r) => r.data);
+  },
 
   updatePassword: (body: { currentPassword: string; newPassword: string }) =>
     axiosInstance.patch<IApiResponse<null>>(ENDPOINTS.AUTH.PASSWORD, body).then((r) => r.data),
