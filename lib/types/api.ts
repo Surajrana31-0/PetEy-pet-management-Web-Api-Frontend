@@ -7,6 +7,7 @@ export interface IApiResponse<T = unknown> {
     page?: number;
     limit?: number;
     totalPages?: number;
+    unreadCount?: number;
   } | null;
 }
 

@@ -27,6 +27,9 @@ export interface IUser {
   favorites?: string[];
   emailVerified?: boolean;
   tokenVersion?: number;
+  isSuspended?: boolean;
+  suspensionReason?: string | null;
+  suspendedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

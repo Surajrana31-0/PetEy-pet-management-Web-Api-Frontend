@@ -44,6 +44,8 @@ export const ENDPOINTS = {
     CHAT: '/ai/chat',
     CHAT_HISTORY: '/ai/chat-history',
     RECOMMENDATIONS: '/ai/recommendations',
+    SESSIONS: '/ai/sessions',
+    SESSION_BY_ID: (sessionId: string) => `/ai/sessions/${sessionId}`,
   },
   BLOGS: {
     BASE: '/blogs',
@@ -63,7 +65,24 @@ export const ENDPOINTS = {
   FILE: {
     UPLOAD: '/file/upload',
   },
+  NOTIFICATIONS: {
+    BASE: '/notifications',
+    UNREAD_COUNT: '/notifications/unread-count',
+    MARK_ALL_READ: '/notifications/mark-all-read',
+    MARK_READ: (id: string) => `/notifications/${id}/read`,
+    DELETE_READ: '/notifications/read',
+    BY_ID: (id: string) => `/notifications/${id}`,
+  },
   ADMIN: {
+    DASHBOARD: {
+      FULL: '/admin/dashboard',
+      OVERVIEW: '/admin/dashboard/overview',
+      MONTHLY_REPORTS: '/admin/dashboard/monthly-reports',
+      RECENT_ACTIVITIES: '/admin/dashboard/recent-activities',
+      ACTIVITY_LOGS: '/admin/dashboard/activity-logs',
+      ACTIVITY_STATS: '/admin/dashboard/activity-stats',
+      ADOPTION_TRENDS: '/admin/dashboard/adoption-trends',
+    },
     USERS: {
       GET: '/admin/users',
       GET_ONE: (id: string) => `/admin/users/${id}`,
@@ -72,6 +91,19 @@ export const ENDPOINTS = {
       DELETE: (id: string) => `/admin/users/${id}`,
       UPDATE_ROLE: (id: string) => `/admin/users/${id}/role`,
       STATS: '/admin/users/stats',
+    },
+    USERS_MANAGEMENT: {
+      GET: '/admin/users-management',
+      STATS: '/admin/users-management/stats',
+      SUSPEND: (id: string) => `/admin/users-management/${id}/suspend`,
+      ACTIVATE: (id: string) => `/admin/users-management/${id}/activate`,
+    },
+    ADOPTIONS: {
+      STATS: '/admin/adoptions/stats',
+      EXPORT: '/admin/adoptions/export',
+      BY_STATUS: (status: string) => `/admin/adoptions/status/${status}`,
+      BULK_APPROVE: '/admin/adoptions/bulk-approve',
+      BULK_REJECT: '/admin/adoptions/bulk-reject',
     },
     PETS: {
       GET: '/admin/pets',
