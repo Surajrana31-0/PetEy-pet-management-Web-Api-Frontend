@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Dog, Cat, Heart, Eye } from 'lucide-react';
+import { Dog, Cat, Heart, Eye, MapPin } from 'lucide-react';
 import type { Pet } from '@/lib/types';
 import { StatusBadge } from '@/components/status-badge';
 import { cn } from '@/lib/utils';
@@ -21,14 +21,15 @@ export function PetCard({ pet, className }: PetCardProps) {
     <Link
       href={`/pets/${pet._id}`}
       className={cn(
-        'group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-glow',
+        'group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card card-shadow transition-all duration-300 hover:-translate-y-1 hover:card-shadow-hover',
         className
       )}
     >
+      {/* Image area */}
       <div
         className={cn(
           'relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br',
-          SPECIES_GRADIENTS[pet.species]
+          SPECIES_GRADIENTS[pet.species] || SPECIES_GRADIENTS.DOG
         )}
       >
         <div className="flex h-full items-center justify-center">
@@ -51,19 +52,21 @@ export function PetCard({ pet, className }: PetCardProps) {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
+      {/* Content */
+      <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold leading-tight transition-colors group-hover:text-primary">
             {pet.name}
           </h3>
-          <span className="text-xs text-muted-foreground">{pet.age}</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">{pet.age} yr{pet.age !== 1 ? 's' : ''}</span>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">{pet.breed}</p>
         <p className="mt-2 line-clamp-2 text-sm text-muted-foreground/80">{pet.description}</p>
 
-        <div className="mt-4 flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
-            {new Date(pet.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+        <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-4">
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="h-3 w-3" />
+            Available
           </span>
           <span className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors group-hover:bg-destructive/10 group-hover:text-destructive">
             <Heart className="h-4 w-4" />
