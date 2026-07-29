@@ -14,6 +14,8 @@ interface NavItem {
 
 const USER_NAV: NavItem[] = [
   { href: '/dashboard/user', label: 'Overview', icon: '🏠' },
+  { href: '/dashboard/user/browse', label: 'Browse Pets', icon: '🐾' },
+  { href: '/dashboard/user/appointments', label: 'Vet Appointments', icon: '🩺' },
   { href: '/dashboard/user/profile', label: 'My Profile', icon: '👤' },
   { href: '/dashboard/user/favorites', label: 'Favorite Pets', icon: '❤️' },
   { href: '/dashboard/user/applications', label: 'Applications', icon: '📋' },
@@ -25,6 +27,8 @@ const USER_NAV: NavItem[] = [
 const ADMIN_NAV: NavItem[] = [
   { href: '/dashboard/admin', label: 'Dashboard', icon: '📊' },
   { href: '/dashboard/admin/pets', label: 'Pet Management', icon: '🐾' },
+  { href: '/dashboard/admin/vets', label: 'Veterinarians', icon: '🩺' },
+  { href: '/dashboard/admin/appointments', label: 'Appointments', icon: '📅' },
   { href: '/dashboard/admin/applications', label: 'Adoptions', icon: '📋' },
   { href: '/dashboard/admin/analytics', label: 'Analytics', icon: '📈' },
 ];
