@@ -1,14 +1,15 @@
 'use server';
 
 import { aiApi } from '../api/ai';
-import type { IAiMatchPreferences } from '../types/ai';
 import type { IAiPetMatch } from '../types/pet';
 
-export async function aiMatchAction(
-  preferences: IAiMatchPreferences,
-): Promise<{ success: boolean; matches: IAiPetMatch[]; message?: string }> {
+export async function aiMatchAction(): Promise<{
+  success: boolean;
+  matches: IAiPetMatch[];
+  message?: string;
+}> {
   try {
-    const result = await aiApi.match(preferences);
+    const result = await aiApi.match();
     return {
       success: result.success,
       matches: result.data ?? [],

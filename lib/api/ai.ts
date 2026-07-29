@@ -2,12 +2,12 @@ import axiosInstance from './axios-instance';
 import { ENDPOINTS } from './endpoints';
 import { throwApiError } from './errors';
 import type { IApiResponse } from '../types/api';
-import type { IAiMatchPreferences, IAiMatchResult } from '../types/ai';
+import type { IAiMatchResult } from '../types/ai';
 import type { IAiPetMatch } from '../types/pet';
 
-export async function matchPets(preferences: IAiMatchPreferences): Promise<IApiResponse<IAiMatchResult>> {
+export async function matchPets(): Promise<IApiResponse<IAiMatchResult>> {
   try {
-    const response = await axiosInstance.post(ENDPOINTS.AI.MATCH, preferences);
+    const response = await axiosInstance.get(ENDPOINTS.AI.MATCH);
     return response.data;
   } catch (error) {
     throwApiError(error, 'AI match failed');
@@ -23,20 +23,19 @@ export async function getRecommendations(): Promise<IApiResponse<IAiPetMatch[]>>
   }
 }
 
-export async function analyzeCompatibility(data: {
-  petId: string;
-  lifestyle?: string;
-  [key: string]: unknown;
-}): Promise<IApiResponse<Record<string, unknown>>> {
+export async function analyzeCompatibility(petId: string): Promise<IApiResponse<Record<string, unknown>>> {
   try {
-    const response = await axiosInstance.post(ENDPOINTS.AI.ANALYZE_COMPATIBILITY, data);
+    const response = await axiosInstance.post(ENDPOINTS.AI.ANALYZE_COMPATIBILITY, { petId });
     return response.data;
   } catch (error) {
     throwApiError(error, 'Compatibility analysis failed');
   }
 }
 
-export async function sendChat(message: string, sessionId?: string): Promise<IApiResponse<{ message: string; sessionId: string }>> {
+export async function sendChat(
+  message: string,
+  sessionId: string,
+): Promise<IApiResponse<{ message: string; sessionId: string }>> {
   try {
     const response = await axiosInstance.post(ENDPOINTS.AI.CHAT, { message, sessionId });
     return response.data;
@@ -55,11 +54,20 @@ export async function getChatHistory(): Promise<IApiResponse<unknown[]>> {
 }
 
 export async function generatePetDescription(data: {
-  petId: string;
   name: string;
-  species: string;
+  species: 'DOG' | 'CAT';
   breed: string;
-  age: string;
+  age: number;
+  description: string;
+  size: 'SMALL' | 'MEDIUM' | 'LARGE';
+  gender: 'MALE' | 'FEMALE';
+  activityLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  temperament: string[];
+  goodWithKids: boolean;
+  goodWithPets: boolean;
+  vaccinated: boolean;
+  neutered: boolean;
+  healthStatus: string;
 }): Promise<IApiResponse<{ description: string }>> {
   try {
     const response = await axiosInstance.post(ENDPOINTS.AI.GENERATE_DESCRIPTION, data);
